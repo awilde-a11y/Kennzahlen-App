@@ -33,16 +33,6 @@
     h1{ margin:0; font-size:20px; }
     .sub{ margin:6px 0 0; color:#555; font-size:13px; }
 
-    h2{ margin:18px 0 8px; font-size:15px; }
-    .grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-    @media (max-width:900px){ .grid{ grid-template-columns:1fr; } }
-
-    label{ display:block; font-size:12px; color:var(--muted); margin:10px 0 6px; }
-    input{
-      width:100%; padding:10px 12px; border-radius:12px; border:1px solid #d9dbe6;
-      font:inherit; box-sizing:border-box; background:#fff; color:#111;
-    }
-
     .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
     .btn{
       padding:10px 12px; border-radius:12px; border:1px solid #111;
@@ -52,6 +42,33 @@
     .pill{ padding:6px 10px; border-radius:999px; font-size:12px; border:1px solid #e4e6f1; background:#f1f2f7; white-space:nowrap; }
     .hr{ height:1px; background:var(--border); border:0; margin:14px 0; }
     .note{ font-size:12px; color:var(--muted); }
+    .muted{ color:var(--muted); font-size:12px; }
+    .small{ font-size:12px; color:#555; }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+    /* Tabs */
+    .tabs{ display:flex; gap:8px; flex-wrap:wrap; margin:14px 0 6px; }
+    .tabbtn{
+      cursor:pointer;
+      border-radius:999px;
+      border:1px solid #d9dbe6;
+      background:#fff;
+      padding:9px 12px;
+      font:inherit;
+    }
+    .tabbtn.active{ background:#111; color:#fff; border-color:#111; }
+    .tab{ display:none; }
+    .tab.active{ display:block; }
+
+    /* Inputs */
+    h2{ margin:18px 0 8px; font-size:15px; }
+    .grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    @media (max-width:900px){ .grid{ grid-template-columns:1fr; } }
+    label{ display:block; font-size:12px; color:var(--muted); margin:10px 0 6px; }
+    input, select{
+      width:100%; padding:10px 12px; border-radius:12px; border:1px solid #d9dbe6;
+      font:inherit; box-sizing:border-box; background:#fff; color:#111;
+    }
 
     /* Badges / Ampel */
     .badge{
@@ -68,9 +85,6 @@
       display:flex; justify-content:space-between; gap:12px; align-items:flex-start;
     }
     .big{ font-size:22px; font-weight:900; }
-    .muted{ color:var(--muted); font-size:12px; }
-    .small{ font-size:12px; color:#555; }
-    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
 
     .sectionsGrid{
       display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;
@@ -131,17 +145,34 @@
       border-bottom:1px solid var(--border);
       background:#fafbff;
     }
-    .inputTitle{
-      display:flex; align-items:center; gap:10px;
-      font-weight:900;
-    }
-    .help{
-      font-size:12px;
-      color:var(--muted);
-      margin-top:6px;
-      line-height:1.35;
-    }
+    .inputTitle{ display:flex; align-items:center; gap:10px; font-weight:900; }
+    .help{ font-size:12px; color:var(--muted); margin-top:6px; line-height:1.35; }
     .help b{ color:#333; }
+
+    /* Period list */
+    .list{ display:flex; flex-direction:column; gap:10px; margin-top:12px; }
+    .item{
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px;
+      background:#fff;
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:10px;
+    }
+    .itemTitle{ font-weight:900; }
+    .itemMeta{ color:var(--muted); font-size:12px; margin-top:4px; }
+    .itemBtns{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+
+    /* Compare */
+    .compareGrid{
+      display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;
+    }
+    @media (max-width:900px){ .compareGrid{ grid-template-columns:1fr; } }
+    .deltaUp{ color:var(--green-tx); font-weight:900; }
+    .deltaDown{ color:var(--red-tx); font-weight:900; }
+    .deltaFlat{ color:var(--muted); font-weight:900; }
   </style>
 </head>
 
@@ -151,152 +182,268 @@
     <div class="row">
       <div>
         <h1>Due-Diligence KPI App</h1>
-        <div class="sub">Werte eingeben → Zuordnung pro Bereich → KPIs + Ampel + PDF (je Bereich 1 Seite)</div>
+        <div class="sub">Berechnung + Zeiträume + Übersicht + Vergleich + PDF</div>
       </div>
       <div class="row">
-        <span class="pill">v3</span>
+        <span class="pill" id="versionPill">v5</span>
         <button class="btn secondary" id="fillDemo">Demo-Werte</button>
         <button class="btn secondary" id="reset">Reset</button>
       </div>
     </div>
 
-    <!-- INPUTS grouped with "needed for" -->
-    <div class="inputSection">
-      <div class="inputHead">
-        <div class="inputTitle"><span class="dot rent"></span> 🟦 Rentabilität – Eingaben</div>
-        <span class="pill">für Rohertrag / EBITDA / Netto / ROI</span>
-      </div>
-      <div class="grid" style="padding:12px;">
-        <div>
-          <label>Umsatz (€)</label>
-          <input id="umsatz" placeholder="z. B. 1.250.000" inputmode="decimal">
-          <div class="help"><b>Benötigt für:</b> Rentabilität → Rohertrag, EBITDA-Marge, Netto-Marge | Effizienz → Umsatz/MA, Umsatz/m² | Liquidität → Cashflow-Quote, Working-Capital-Benchmark | E-Commerce → Marketingquote, AOV, Retourenquote</div>
-
-          <label>Wareneinsatz (€)</label>
-          <input id="wareneinsatz" placeholder="z. B. 720.000" inputmode="decimal">
-          <div class="help"><b>Benötigt für:</b> Rentabilität → Rohertrag | Effizienz → Lagerumschlag</div>
-
-          <label>EBITDA (€)</label>
-          <input id="ebitda" placeholder="z. B. 140.000" inputmode="decimal">
-          <div class="help"><b>Benötigt für:</b> Rentabilität → EBITDA-Marge</div>
-
-          <label>Jahresüberschuss (€)</label>
-          <input id="jahresueberschuss" placeholder="z. B. 70.000" inputmode="decimal">
-          <div class="help"><b>Benötigt für:</b> Rentabilität → Netto-Marge, ROI</div>
-        </div>
-
-        <div>
-          <label>Eigenkapital (€)</label>
-          <input id="eigenkapital" placeholder="z. B. 280.000" inputmode="decimal">
-          <div class="help"><b>Benötigt für:</b> Rentabilität → ROI | Liquidität → Eigenkapitalquote</div>
-
-          <label>Gesamtkapital (€)</label>
-          <input id="gesamtkapital" placeholder="z. B. 900.000" inputmode="decimal">
-          <div class="help"><b>Benötigt für:</b> Liquidität → Eigenkapitalquote</div>
-        </div>
-      </div>
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tabbtn active" data-tab="calcTab">Berechnung</button>
+      <button class="tabbtn" data-tab="periodTab">Zeiträume</button>
+      <button class="tabbtn" data-tab="overviewTab">Übersicht</button>
+      <button class="tabbtn" data-tab="compareTab">Vergleich</button>
     </div>
 
-    <div class="inputSection">
-      <div class="inputHead">
-        <div class="inputTitle"><span class="dot eff"></span> 🟨 Effizienz – Eingaben</div>
-        <span class="pill">für Lagerumschlag / Umsatz pro MA / Umsatz pro m²</span>
-      </div>
-      <div class="grid" style="padding:12px;">
-        <div>
-          <label>Ø Lagerbestand (€)</label>
-          <input id="lagerbestand" placeholder="z. B. 180.000" inputmode="decimal">
-          <div class="help"><b>Benötigt für:</b> Effizienz → Lagerumschlag</div>
+    <!-- TAB 1: Berechnung -->
+    <div class="tab active" id="calcTab">
 
-          <label>Mitarbeiter (FTE)</label>
-          <input id="mitarbeiter" placeholder="z. B. 8" inputmode="decimal">
-          <div class="help"><b>Benötigt für:</b> Effizienz → Umsatz/MA</div>
+      <div class="inputSection">
+        <div class="inputHead">
+          <div class="inputTitle"><span class="dot rent"></span> 🟦 Rentabilität – Eingaben</div>
+          <span class="pill">Rohertrag / EBITDA / Netto / ROI</span>
         </div>
-        <div>
-          <label>Verkaufsfläche (m²)</label>
-          <input id="verkaufsflaeche" placeholder="z. B. 250" inputmode="decimal">
-          <div class="help"><b>Benötigt für:</b> Effizienz → Umsatz/m²</div>
-        </div>
-      </div>
-    </div>
+        <div class="grid" style="padding:12px;">
+          <div>
+            <label>Umsatz (€)</label>
+            <input id="umsatz" placeholder="z. B. 1.250.000" inputmode="decimal">
+            <div class="help"><b>Benötigt für:</b> Rentabilität → Rohertrag, EBITDA-Marge, Netto-Marge | Effizienz → Umsatz/MA, Umsatz/m² | Liquidität → Cashflow-Quote, Working-Capital-Benchmark | E-Commerce → Marketingquote, AOV, Retourenquote</div>
 
-    <div class="inputSection">
-      <div class="inputHead">
-        <div class="inputTitle"><span class="dot liq"></span> 🟩 Liquidität – Eingaben</div>
-        <span class="pill">für EK-Quote / Working Capital / Cashflow-Quote</span>
-      </div>
-      <div class="grid" style="padding:12px;">
-        <div>
-          <label>Umlaufvermögen (€)</label>
-          <input id="umlaufvermoegen" placeholder="z. B. 320.000" inputmode="decimal">
-          <div class="help"><b>Benötigt für:</b> Liquidität → Working Capital</div>
+            <label>Wareneinsatz (€)</label>
+            <input id="wareneinsatz" placeholder="z. B. 720.000" inputmode="decimal">
+            <div class="help"><b>Benötigt für:</b> Rentabilität → Rohertrag | Effizienz → Lagerumschlag</div>
 
-          <label>Kurzfr. Verbindlichkeiten (€)</label>
-          <input id="kurzfristigeVerbindlichkeiten" placeholder="z. B. 210.000" inputmode="decimal">
-          <div class="help"><b>Benötigt für:</b> Liquidität → Working Capital</div>
-        </div>
-        <div>
-          <label>Operativer Cashflow (€)</label>
-          <input id="operativerCashflow" placeholder="z. B. 95.000" inputmode="decimal">
-          <div class="help"><b>Benötigt für:</b> Liquidität → Cashflow-Quote</div>
+            <label>EBITDA (€)</label>
+            <input id="ebitda" placeholder="z. B. 140.000" inputmode="decimal">
+            <div class="help"><b>Benötigt für:</b> Rentabilität → EBITDA-Marge</div>
+
+            <label>Jahresüberschuss (€)</label>
+            <input id="jahresueberschuss" placeholder="z. B. 70.000" inputmode="decimal">
+            <div class="help"><b>Benötigt für:</b> Rentabilität → Netto-Marge, ROI</div>
+          </div>
+
+          <div>
+            <label>Eigenkapital (€)</label>
+            <input id="eigenkapital" placeholder="z. B. 280.000" inputmode="decimal">
+            <div class="help"><b>Benötigt für:</b> Rentabilität → ROI | Liquidität → Eigenkapitalquote</div>
+
+            <label>Gesamtkapital (€)</label>
+            <input id="gesamtkapital" placeholder="z. B. 900.000" inputmode="decimal">
+            <div class="help"><b>Benötigt für:</b> Liquidität → Eigenkapitalquote</div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="inputSection">
-      <div class="inputHead">
-        <div class="inputTitle"><span class="dot ecom"></span> 🟪 E-Commerce – Eingaben</div>
-        <span class="pill">für Marketingquote / Conversion / AOV / Retourenquote</span>
-      </div>
-      <div class="grid" style="padding:12px;">
-        <div>
-          <label>Marketingkosten (€)</label>
-          <input id="marketingkosten" placeholder="z. B. 85.000" inputmode="decimal">
-          <div class="help"><b>Benötigt für:</b> E-Commerce → Marketingquote</div>
-
-          <label>Bestellungen (Anzahl)</label>
-          <input id="bestellungen" placeholder="z. B. 12.500" inputmode="decimal">
-          <div class="help"><b>Benötigt für:</b> E-Commerce → Conversion Rate, AOV</div>
+      <div class="inputSection">
+        <div class="inputHead">
+          <div class="inputTitle"><span class="dot eff"></span> 🟨 Effizienz – Eingaben</div>
+          <span class="pill">Lagerumschlag / Umsatz/MA / Umsatz/m²</span>
         </div>
+        <div class="grid" style="padding:12px;">
+          <div>
+            <label>Ø Lagerbestand (€)</label>
+            <input id="lagerbestand" placeholder="z. B. 180.000" inputmode="decimal">
+            <div class="help"><b>Benötigt für:</b> Effizienz → Lagerumschlag</div>
 
-        <div>
-          <label>Shopbesucher (Anzahl)</label>
-          <input id="shopbesucher" placeholder="z. B. 520.000" inputmode="decimal">
-          <div class="help"><b>Benötigt für:</b> E-Commerce → Conversion Rate</div>
-
-          <label>Retouren (€)</label>
-          <input id="retouren" placeholder="z. B. 55.000" inputmode="decimal">
-          <div class="help"><b>Benötigt für:</b> E-Commerce → Retourenquote</div>
+            <label>Mitarbeiter (FTE)</label>
+            <input id="mitarbeiter" placeholder="z. B. 8" inputmode="decimal">
+            <div class="help"><b>Benötigt für:</b> Effizienz → Umsatz/MA</div>
+          </div>
+          <div>
+            <label>Verkaufsfläche (m²)</label>
+            <input id="verkaufsflaeche" placeholder="z. B. 250" inputmode="decimal">
+            <div class="help"><b>Benötigt für:</b> Effizienz → Umsatz/m²</div>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="hr"></div>
+      <div class="inputSection">
+        <div class="inputHead">
+          <div class="inputTitle"><span class="dot liq"></span> 🟩 Liquidität – Eingaben</div>
+          <span class="pill">EK-Quote / Working Capital / Cashflow-Quote</span>
+        </div>
+        <div class="grid" style="padding:12px;">
+          <div>
+            <label>Umlaufvermögen (€)</label>
+            <input id="umlaufvermoegen" placeholder="z. B. 320.000" inputmode="decimal">
+            <div class="help"><b>Benötigt für:</b> Liquidität → Working Capital</div>
 
-    <div class="row">
-      <button class="btn" id="calc">Kennzahlen berechnen</button>
-      <div class="row">
-        <button class="btn secondary" id="pdf">PDF exportieren</button>
+            <label>Kurzfr. Verbindlichkeiten (€)</label>
+            <input id="kurzfristigeVerbindlichkeiten" placeholder="z. B. 210.000" inputmode="decimal">
+            <div class="help"><b>Benötigt für:</b> Liquidität → Working Capital</div>
+          </div>
+          <div>
+            <label>Operativer Cashflow (€)</label>
+            <input id="operativerCashflow" placeholder="z. B. 95.000" inputmode="decimal">
+            <div class="help"><b>Benötigt für:</b> Liquidität → Cashflow-Quote</div>
+          </div>
+        </div>
       </div>
-    </div>
 
-    <div id="results" style="display:none;">
+      <div class="inputSection">
+        <div class="inputHead">
+          <div class="inputTitle"><span class="dot ecom"></span> 🟪 E-Commerce – Eingaben</div>
+          <span class="pill">Marketingquote / Conversion / AOV / Retourenquote</span>
+        </div>
+        <div class="grid" style="padding:12px;">
+          <div>
+            <label>Marketingkosten (€)</label>
+            <input id="marketingkosten" placeholder="z. B. 85.000" inputmode="decimal">
+            <div class="help"><b>Benötigt für:</b> E-Commerce → Marketingquote</div>
+
+            <label>Bestellungen (Anzahl)</label>
+            <input id="bestellungen" placeholder="z. B. 12.500" inputmode="decimal">
+            <div class="help"><b>Benötigt für:</b> E-Commerce → Conversion Rate, AOV</div>
+          </div>
+
+          <div>
+            <label>Shopbesucher (Anzahl)</label>
+            <input id="shopbesucher" placeholder="z. B. 520.000" inputmode="decimal">
+            <div class="help"><b>Benötigt für:</b> E-Commerce → Conversion Rate</div>
+
+            <label>Retouren (€)</label>
+            <input id="retouren" placeholder="z. B. 55.000" inputmode="decimal">
+            <div class="help"><b>Benötigt für:</b> E-Commerce → Retourenquote</div>
+          </div>
+        </div>
+      </div>
+
       <div class="hr"></div>
 
-      <div class="scoreCard">
-        <div>
-          <div class="muted">Gesamtscore (4 Bereiche je 25%)</div>
-          <div class="big" id="totalScoreText">—</div>
-          <div class="small" id="totalInterpretation">—</div>
-          <div class="muted" id="totalExplain">—</div>
+      <div class="row">
+        <button class="btn" id="calc">Kennzahlen berechnen</button>
+        <div class="row">
+          <button class="btn secondary" id="pdf">PDF exportieren</button>
         </div>
-        <span class="badge" id="totalBadge">—</span>
       </div>
 
-      <div class="sectionsGrid" id="sections"></div>
+      <div id="results" style="display:none;">
+        <div class="hr"></div>
 
-      <div class="note" style="margin-top:10px;">
-        Benchmarks & KPI-Gewichte sind im Code zentral in <span class="mono">CONFIG</span> definiert.
+        <div class="scoreCard">
+          <div>
+            <div class="muted">Gesamtscore (4 Bereiche je 25%)</div>
+            <div class="big" id="totalScoreText">—</div>
+            <div class="small" id="totalInterpretation">—</div>
+            <div class="muted" id="totalExplain">—</div>
+          </div>
+          <span class="badge" id="totalBadge">—</span>
+        </div>
+
+        <div class="sectionsGrid" id="sections"></div>
+
+        <div class="note" style="margin-top:10px;">
+          Tipp: Für Monat/Quartal/Jahr → Reiter <b>Zeiträume</b> speichern. Für Vorher/Nachher → Reiter <b>Vergleich</b>.
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: Zeiträume -->
+    <div class="tab" id="periodTab">
+      <h2>Zeiträume speichern (Monat / Quartal / Jahr)</h2>
+      <div class="grid">
+        <div>
+          <label>Zeitraum-Typ</label>
+          <select id="periodType">
+            <option value="Monat">Monat</option>
+            <option value="Quartal">Quartal</option>
+            <option value="Jahr">Jahr</option>
+          </select>
+          <div class="note">Wähle, ob deine Eingaben ein Monats-, Quartals- oder Jahresdatensatz sind.</div>
+        </div>
+        <div>
+          <label>Zeitraum-Bezeichnung</label>
+          <input id="periodLabel" placeholder="z. B. 2026-01 | 2026-Q1 | 2026">
+          <div class="note">Freies Feld – du bestimmst das Format (wichtig für Übersicht/Vergleich).</div>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:12px;">
+        <button class="btn" id="savePeriod">Aktuelle Eingaben als Zeitraum speichern</button>
+        <button class="btn secondary" id="goOverview">Zur Übersicht</button>
+      </div>
+
+      <div class="hr"></div>
+      <div class="note">
+        Gespeichert wird <b>lokal</b> auf diesem Gerät/Browser (LocalStorage).
+      </div>
+    </div>
+
+    <!-- TAB 3: Übersicht -->
+    <div class="tab" id="overviewTab">
+      <h2>Übersicht gespeicherter Zeiträume</h2>
+      <div class="row">
+        <div class="note">Laden, löschen oder PDF pro Zeitraum.</div>
+        <button class="btn secondary" id="refreshList">Aktualisieren</button>
+      </div>
+
+      <div class="list" id="periodList"></div>
+
+      <div class="hr"></div>
+      <div class="note">
+        Hinweis: Laden setzt die Eingaben im Reiter <b>Berechnung</b>.
+      </div>
+    </div>
+
+    <!-- TAB 4: Vergleich -->
+    <div class="tab" id="compareTab">
+      <h2>Vergleich (A vs B)</h2>
+
+      <div class="compareGrid">
+        <div class="inputSection" style="margin-top:0;">
+          <div class="inputHead">
+            <div class="inputTitle">A auswählen</div>
+            <span class="pill">Referenz</span>
+          </div>
+          <div style="padding:12px;">
+            <label>Zeitraum A</label>
+            <select id="compareA"></select>
+            <div class="note">z. B. Monat 2026-01</div>
+          </div>
+        </div>
+
+        <div class="inputSection" style="margin-top:0;">
+          <div class="inputHead">
+            <div class="inputTitle">B auswählen</div>
+            <span class="pill">Vergleich</span>
+          </div>
+          <div style="padding:12px;">
+            <label>Zeitraum B</label>
+            <select id="compareB"></select>
+            <div class="note">z. B. Monat 2026-02</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:12px;">
+        <button class="btn" id="runCompare">Vergleich berechnen</button>
+        <button class="btn secondary" id="comparePDF">PDF Vergleich</button>
+        <button class="btn secondary" id="refreshCompare">Listen aktualisieren</button>
+      </div>
+
+      <div id="compareOut" style="display:none;">
+        <div class="hr"></div>
+
+        <div class="scoreCard">
+          <div>
+            <div class="muted" id="compareTitle">Gesamtvergleich</div>
+            <div class="big" id="compareTotalLine">—</div>
+            <div class="small" id="compareDeltaLine">—</div>
+            <div class="muted">Δ = B − A</div>
+          </div>
+          <span class="badge" id="compareTotalBadge">—</span>
+        </div>
+
+        <div class="sectionsGrid" id="compareSections"></div>
+      </div>
+
+      <div class="hr"></div>
+      <div class="note">
+        Tipp: Speichere erst Monat/Quartal/Jahr in <b>Zeiträume</b>, dann kannst du hier vergleichen.
       </div>
     </div>
 
@@ -306,13 +453,24 @@
 <script>
   const $ = (id) => document.getElementById(id);
 
-  function num(id){
-    const raw = ($(id).value || "").toString().trim();
-    if(!raw) return 0;
-    const cleaned = raw.replace(/\s/g,"").replace(/\./g,"").replace(",",".");
+  // ---------- Tabs ----------
+  function setTab(tabId){
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    document.querySelectorAll(".tabbtn").forEach(b => b.classList.remove("active"));
+    $(tabId).classList.add("active");
+    document.querySelector(`.tabbtn[data-tab="${tabId}"]`).classList.add("active");
+  }
+  document.querySelectorAll(".tabbtn").forEach(btn => btn.addEventListener("click", () => setTab(btn.dataset.tab)));
+
+  // ---------- Number helpers ----------
+  function parseNumFromString(raw){
+    const s = (raw ?? "").toString().trim();
+    if(!s) return 0;
+    const cleaned = s.replace(/\s/g,"").replace(/\./g,"").replace(",",".");
     const n = Number(cleaned);
     return Number.isFinite(n) ? n : 0;
   }
+  function num(id){ return parseNumFromString($(id).value || ""); }
   function safeDiv(a,b){ return b ? (a/b) : 0; }
   function pct(x){ return x * 100; }
 
@@ -338,7 +496,6 @@
 
   function scoreFromBenchmark(value, bm){
     if (!Number.isFinite(value)) return 0;
-
     if (bm.type === "higherBetter"){
       if (value <= bm.red) return 0;
       if (value >= bm.green) return 100;
@@ -362,6 +519,13 @@
     return {cls:"red", text:"🔴 Kritisch"};
   }
 
+  function deltaClass(d){
+    if (d > 0.05) return "deltaUp";
+    if (d < -0.05) return "deltaDown";
+    return "deltaFlat";
+  }
+
+  // ---------- KPI CONFIG ----------
   const CONFIG = {
     sections: [
       {
@@ -401,25 +565,30 @@
     ]
   };
 
-  function computeKPIs(){
-    const u  = num("umsatz");
-    const w  = num("wareneinsatz");
-    const e  = num("ebitda");
-    const j  = num("jahresueberschuss");
-    const ek = num("eigenkapital");
-    const gk = num("gesamtkapital");
-    const lb = num("lagerbestand");
-    const ma = num("mitarbeiter");
-    const vf = num("verkaufsflaeche");
-    const uv = num("umlaufvermoegen");
-    const kv = num("kurzfristigeVerbindlichkeiten");
-    const cf = num("operativerCashflow");
-    const mk = num("marketingkosten");
-    const b  = num("bestellungen");
-    const s  = num("shopbesucher");
-    const r  = num("retouren");
+  // ---------- Compute ----------
+  function computeKPIsFromInputsObject(inputsObj){
+    const u  = parseNumFromString(inputsObj.umsatz);
+    const w  = parseNumFromString(inputsObj.wareneinsatz);
+    const e  = parseNumFromString(inputsObj.ebitda);
+    const j  = parseNumFromString(inputsObj.jahresueberschuss);
+    const ek = parseNumFromString(inputsObj.eigenkapital);
+    const gk = parseNumFromString(inputsObj.gesamtkapital);
+    const lb = parseNumFromString(inputsObj.lagerbestand);
+    const ma = parseNumFromString(inputsObj.mitarbeiter);
+    const vf = parseNumFromString(inputsObj.verkaufsflaeche);
+    const uv = parseNumFromString(inputsObj.umlaufvermoegen);
+    const kv = parseNumFromString(inputsObj.kurzfristigeVerbindlichkeiten);
+    const cf = parseNumFromString(inputsObj.operativerCashflow);
+    const mk = parseNumFromString(inputsObj.marketingkosten);
+    const b  = parseNumFromString(inputsObj.bestellungen);
+    const s  = parseNumFromString(inputsObj.shopbesucher);
+    const r  = parseNumFromString(inputsObj.retouren);
 
-    if(u <= 0) throw new Error("Bitte mindestens Umsatz > 0 eingeben.");
+    if(u <= 0) throw new Error("Umsatz muss > 0 sein.");
+
+    // Dynamic Working Capital benchmark based on Umsatz
+    const wcGreen = u * 0.05;
+    const wcYellow = u * 0.025;
 
     const values = {
       rohertrag: pct(safeDiv((u - w), u)),
@@ -441,7 +610,16 @@
       retourenQuote: pct(safeDiv(r, u))
     };
 
-    return { input:{u,w,e,j,ek,gk,lb,ma,vf,uv,kv,cf,mk,b,s,r}, values };
+    return {
+      input:{u,w,e,j,ek,gk,lb,ma,vf,uv,kv,cf,mk,b,s,r},
+      values,
+      dynamicBenchmarks: { workingCapital: {type:"higherBetter", red:0, yellow:wcYellow, green:wcGreen} }
+    };
+  }
+
+  function computeKPIs(){
+    const inputs = collectInputs();
+    return computeKPIsFromInputsObject(inputs);
   }
 
   function buildKpiRow(kpi, value, badge, score){
@@ -450,7 +628,7 @@
         <div>
           <div class="kpiName">- ${kpi.name}</div>
           <div class="kpiExplain">${kpi.explain}</div>
-          <div class="kpiMeta">Benchmark-Gewicht: <span class="mono">${kpi.weight}</span> • KPI-Score: <span class="mono">${score.toFixed(1)}</span>/100</div>
+          <div class="kpiMeta">Gewicht: <span class="mono">${kpi.weight}</span> • KPI-Score: <span class="mono">${score.toFixed(1)}</span>/100</div>
         </div>
         <div class="kpiValue">${formatValue(value, kpi.type)}</div>
         <span class="badge ${badge.cls}">${badge.text}</span>
@@ -479,24 +657,14 @@
     return box;
   }
 
-  function calculateAndRender(){
-    const {input, values} = computeKPIs();
-
-    // Working Capital Benchmark dynamisch: Grün 5% Umsatz, Gelb 2.5% Umsatz, Rot <=0
-    const wcGreen = input.u * 0.05;
-    const wcYellow = input.u * 0.025;
-    const liq = CONFIG.sections.find(s => s.id === "liq");
-    const wcKpi = liq.kpis.find(k => k.id === "workingCapital");
-    wcKpi.benchmark = {type:"higherBetter", red:0, yellow:wcYellow, green:wcGreen};
-
-    const sectionsDiv = $("sections");
-    sectionsDiv.innerHTML = "";
-
-    const pdfModel = {
+  function calculateModelFromComputed(computed){
+    // Clone config and apply dynamic benchmark for working capital
+    const model = {
       generatedAt: new Date().toLocaleString("de-DE"),
-      input,
+      input: computed.input,
       total: null,
-      sections: []
+      sections: [],
+      values: computed.values
     };
 
     let totalScore = 0;
@@ -504,58 +672,88 @@
     CONFIG.sections.forEach(section => {
       let sumW = 0;
       let sumScoreW = 0;
-      let kpiRowsHtml = "";
-      const secForPdf = { name: section.name, emoji: section.titleEmoji, score: 0, badge: null, kpis: [] };
+      const sec = { id: section.id, name: section.name, emoji: section.titleEmoji, score: 0, badge: null, kpis: [] };
 
       section.kpis.forEach(kpi => {
-        const v = values[kpi.id];
-        const sc = scoreFromBenchmark(v, kpi.benchmark);
-        const bd = badgeFor(v, kpi.benchmark);
+        const v = computed.values[kpi.id];
+
+        let bm = kpi.benchmark;
+        if (kpi.id === "workingCapital") bm = computed.dynamicBenchmarks.workingCapital;
+
+        const sc = scoreFromBenchmark(v, bm);
+        const bd = badgeFor(v, bm);
 
         sumW += kpi.weight;
         sumScoreW += sc * kpi.weight;
 
-        kpiRowsHtml += buildKpiRow(kpi, v, bd, sc);
-
-        secForPdf.kpis.push({
+        sec.kpis.push({
+          id: kpi.id,
           name: kpi.name,
+          type: kpi.type,
+          explain: kpi.explain,
+          weight: kpi.weight,
+          value: v,
           valueText: formatValue(v, kpi.type),
           badgeText: bd.text,
-          score: sc,
-          weight: kpi.weight,
-          explain: kpi.explain
+          badgeClass: bd.cls,
+          score: sc
         });
       });
 
       const secScore = sumW ? (sumScoreW / sumW) : 0;
       const secBadge = totalBadgeFromScore(secScore);
 
-      secForPdf.score = secScore;
-      secForPdf.badge = secBadge.text;
+      sec.score = secScore;
+      sec.badge = secBadge.text;
+      sec.badgeClass = secBadge.cls;
 
       totalScore += secScore * section.weightTotal;
-
-      sectionsDiv.appendChild(buildSectionBox(section, secScore, secBadge, kpiRowsHtml));
-      pdfModel.sections.push(secForPdf);
+      model.sections.push(sec);
     });
 
     const tb = totalBadgeFromScore(totalScore);
     const interp = interpretTotal(totalScore);
-
-    $("totalScoreText").textContent = `${totalScore.toFixed(1)} / 100`;
-    $("totalBadge").className = `badge ${tb.cls}`;
-    $("totalBadge").textContent = tb.text;
-
-    $("totalInterpretation").innerHTML = `<b>Interpretation:</b> ${interp.label} – ${interp.hint}`;
-    $("totalExplain").textContent = "Gesamt = Durchschnitt der 4 Bereichsscores (je 25%)";
-
-    $("results").style.display = "block";
-    pdfModel.total = { score: totalScore, badge: tb.text, interpretation: interp.label, interpretationText: interp.hint };
-    window.__PDF_MODEL__ = pdfModel;
+    model.total = { score: totalScore, badge: tb.text, badgeClass: tb.cls, interpretation: interp.label, interpretationText: interp.hint };
+    return model;
   }
 
-  function exportPDF(){
-    const model = window.__PDF_MODEL__;
+  function renderFromModel(model){
+    const sectionsDiv = $("sections");
+    sectionsDiv.innerHTML = "";
+
+    $("totalScoreText").textContent = `${model.total.score.toFixed(1)} / 100`;
+    $("totalBadge").className = `badge ${model.total.badgeClass}`;
+    $("totalBadge").textContent = model.total.badge;
+
+    $("totalInterpretation").innerHTML = `<b>Interpretation:</b> ${model.total.interpretation} – ${model.total.interpretationText}`;
+    $("totalExplain").textContent = "Gesamt = Durchschnitt der 4 Bereichsscores (je 25%)";
+
+    model.sections.forEach(sec => {
+      const cfg = CONFIG.sections.find(s => s.id === sec.id);
+      let rows = "";
+      sec.kpis.forEach(k => {
+        rows += buildKpiRow(
+          {name:k.name, explain:k.explain, weight:k.weight, type:k.type},
+          k.value,
+          {cls:k.badgeClass, text:k.badgeText},
+          k.score
+        );
+      });
+      sectionsDiv.appendChild(buildSectionBox(cfg, sec.score, {cls:sec.badgeClass, text:sec.badge}, rows));
+    });
+
+    $("results").style.display = "block";
+    window.__PDF_MODEL__ = model;
+  }
+
+  function calculateAndRender(){
+    const computed = computeKPIs();
+    const model = calculateModelFromComputed(computed);
+    renderFromModel(model);
+  }
+
+  function exportPDF(customTitle, modelOverride){
+    const model = modelOverride || window.__PDF_MODEL__;
     if(!model){ alert("Bitte zuerst Kennzahlen berechnen."); return; }
 
     const { jsPDF } = window.jspdf;
@@ -570,7 +768,6 @@
       doc.text(text, margin, y);
       doc.setFontSize(11);
     }
-
     function addLines(lines, startY){
       let y = startY;
       lines.forEach(line => {
@@ -581,8 +778,8 @@
       return y;
     }
 
-    // Seite 1: Übersicht
-    addTitle("Due-Diligence KPI Report", 14);
+    // Seite 1
+    addTitle(customTitle || "Due-Diligence KPI Report", 14);
     doc.setFontSize(11);
     let y = 22;
     y = addLines([
@@ -591,29 +788,8 @@
       `Gesamtscore: ${model.total.score.toFixed(1)} / 100`,
       `Ampel: ${model.total.badge}`,
       `Interpretation: ${model.total.interpretation} – ${model.total.interpretationText}`,
-      "",
-      "Eingaben (Auszug):",
-      `- Umsatz: ${fmtEUR(model.input.u)} €`,
-      `- Wareneinsatz: ${fmtEUR(model.input.w)} €`,
-      `- EBITDA: ${fmtEUR(model.input.e)} €`,
-      `- Jahresüberschuss: ${fmtEUR(model.input.j)} €`,
-      `- Eigenkapital: ${fmtEUR(model.input.ek)} €`,
-      `- Gesamtkapital: ${fmtEUR(model.input.gk)} €`,
-      `- Ø Lagerbestand: ${fmtEUR(model.input.lb)} €`,
-      `- Mitarbeiter (FTE): ${model.input.ma}`,
-      `- Verkaufsfläche: ${model.input.vf} m²`,
-      `- Umlaufvermögen: ${fmtEUR(model.input.uv)} €`,
-      `- Kurzfr. Verbindlichkeiten: ${fmtEUR(model.input.kv)} €`,
-      `- Operativer Cashflow: ${fmtEUR(model.input.cf)} €`,
-      `- Marketingkosten: ${fmtEUR(model.input.mk)} €`,
-      `- Bestellungen: ${model.input.b}`,
-      `- Shopbesucher: ${model.input.s}`,
-      `- Retouren: ${fmtEUR(model.input.r)} €`,
       ""
     ], y);
-
-    doc.setFontSize(10);
-    y = addLines(["Hinweis: Jede Kategorie folgt auf einer eigenen Seite."], y);
 
     // Je Bereich eigene Seite
     model.sections.forEach(sec => {
@@ -638,19 +814,348 @@
     doc.save(`Due-Diligence_KPI_Report_${new Date().toISOString().slice(0,10)}.pdf`);
   }
 
-  // Events
-  $("calc").addEventListener("click", () => {
-    try { calculateAndRender(); }
-    catch(e){ alert(e.message || "Fehler bei der Berechnung."); }
-  });
+  // ---------- Period storage ----------
+  const STORE_KEY = "ddkpi_periods_v1";
 
-  $("pdf").addEventListener("click", () => {
-    try { exportPDF(); }
-    catch{ alert("PDF-Export fehlgeschlagen."); }
-  });
+  function getAllPeriods(){
+    try{
+      const raw = localStorage.getItem(STORE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    }catch{ return []; }
+  }
+  function setAllPeriods(list){ localStorage.setItem(STORE_KEY, JSON.stringify(list)); }
+
+  function collectInputs(){
+    return {
+      umsatz: $("umsatz").value || "",
+      wareneinsatz: $("wareneinsatz").value || "",
+      ebitda: $("ebitda").value || "",
+      jahresueberschuss: $("jahresueberschuss").value || "",
+      eigenkapital: $("eigenkapital").value || "",
+      gesamtkapital: $("gesamtkapital").value || "",
+      lagerbestand: $("lagerbestand").value || "",
+      mitarbeiter: $("mitarbeiter").value || "",
+      verkaufsflaeche: $("verkaufsflaeche").value || "",
+      umlaufvermoegen: $("umlaufvermoegen").value || "",
+      kurzfristigeVerbindlichkeiten: $("kurzfristigeVerbindlichkeiten").value || "",
+      operativerCashflow: $("operativerCashflow").value || "",
+      marketingkosten: $("marketingkosten").value || "",
+      bestellungen: $("bestellungen").value || "",
+      shopbesucher: $("shopbesucher").value || "",
+      retouren: $("retouren").value || ""
+    };
+  }
+
+  function applyInputs(obj){
+    Object.entries(obj).forEach(([k,v]) => {
+      const el = $(k);
+      if(el) el.value = v ?? "";
+    });
+  }
+
+  function saveCurrentAsPeriod(){
+    const type = $("periodType").value;
+    const label = ($("periodLabel").value || "").trim();
+    if(!label){
+      alert("Bitte eine Zeitraum-Bezeichnung angeben (z. B. 2026-01 oder 2026-Q1 oder 2026).");
+      return;
+    }
+
+    const item = {
+      id: crypto?.randomUUID ? crypto.randomUUID() : String(Date.now()) + "_" + Math.random().toString(16).slice(2),
+      type, label,
+      savedAt: new Date().toISOString(),
+      inputs: collectInputs()
+    };
+
+    const list = getAllPeriods();
+    const existingIdx = list.findIndex(x => x.type === type && x.label === label);
+    if(existingIdx >= 0) list.splice(existingIdx, 1, item);
+    else list.unshift(item);
+
+    setAllPeriods(list);
+    alert(`Gespeichert: ${type} – ${label}`);
+    renderPeriodList();
+    renderCompareSelects();
+  }
+
+  function renderPeriodList(){
+    const list = getAllPeriods().sort((a,b) => (b.savedAt || "").localeCompare(a.savedAt || ""));
+    const host = $("periodList");
+    host.innerHTML = "";
+
+    if(list.length === 0){
+      host.innerHTML = `<div class="note">Noch keine Zeiträume gespeichert.</div>`;
+      return;
+    }
+
+    list.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "item";
+      const when = item.savedAt ? new Date(item.savedAt).toLocaleString("de-DE") : "-";
+
+      div.innerHTML = `
+        <div>
+          <div class="itemTitle">${item.type}: ${item.label}</div>
+          <div class="itemMeta">Gespeichert am: ${when}</div>
+        </div>
+        <div class="itemBtns">
+          <button class="btn secondary" data-action="load" data-id="${item.id}">Laden</button>
+          <button class="btn secondary" data-action="pdf" data-id="${item.id}">PDF</button>
+          <button class="btn secondary" data-action="delete" data-id="${item.id}">Löschen</button>
+        </div>
+      `;
+      host.appendChild(div);
+    });
+
+    host.querySelectorAll("button[data-action]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        const action = btn.dataset.action;
+        const all = getAllPeriods();
+        const it = all.find(x => x.id === id);
+        if(!it) return;
+
+        if(action === "load"){
+          applyInputs(it.inputs || {});
+          setTab("calcTab");
+          $("results").style.display = "none";
+          window.__PDF_MODEL__ = null;
+          alert(`Geladen: ${it.type} – ${it.label}\nJetzt auf "Kennzahlen berechnen" klicken.`);
+        }
+
+        if(action === "delete"){
+          const next = all.filter(x => x.id !== id);
+          setAllPeriods(next);
+          renderPeriodList();
+          renderCompareSelects();
+        }
+
+        if(action === "pdf"){
+          applyInputs(it.inputs || {});
+          try{
+            const comp = computeKPIsFromInputsObject(it.inputs || {});
+            const model = calculateModelFromComputed(comp);
+            exportPDF(`Due-Diligence KPI Report – ${it.type}: ${it.label}`, model);
+          }catch(e){
+            alert(e.message || "PDF konnte nicht erstellt werden.");
+          }
+        }
+      });
+    });
+  }
+
+  // ---------- Vergleich ----------
+  function renderCompareSelects(){
+    const list = getAllPeriods().sort((a,b) => (b.savedAt || "").localeCompare(a.savedAt || ""));
+    const aSel = $("compareA");
+    const bSel = $("compareB");
+
+    const buildOptions = () => {
+      if(list.length === 0) return `<option value="">(keine Zeiträume gespeichert)</option>`;
+      return list.map(it => {
+        const label = `${it.type}: ${it.label}`;
+        return `<option value="${it.id}">${label}</option>`;
+      }).join("");
+    };
+
+    const opts = buildOptions();
+    aSel.innerHTML = opts;
+    bSel.innerHTML = opts;
+
+    // Preselect: A = 2. Eintrag (älter), B = 1. Eintrag (neu) wenn möglich
+    if(list.length >= 2){
+      aSel.value = list[1].id;
+      bSel.value = list[0].id;
+    }
+  }
+
+  function compareModels(modelA, modelB){
+    const deltaTotal = modelB.total.score - modelA.total.score;
+    return { deltaTotal };
+  }
+
+  function renderCompare(){
+    const all = getAllPeriods();
+    const idA = $("compareA").value;
+    const idB = $("compareB").value;
+
+    const itA = all.find(x => x.id === idA);
+    const itB = all.find(x => x.id === idB);
+
+    if(!itA || !itB){
+      alert("Bitte Zeitraum A und B auswählen (oder erst Zeiträume speichern).");
+      return;
+    }
+
+    const computedA = computeKPIsFromInputsObject(itA.inputs || {});
+    const computedB = computeKPIsFromInputsObject(itB.inputs || {});
+
+    const modelA = calculateModelFromComputed(computedA);
+    const modelB = calculateModelFromComputed(computedB);
+
+    const deltaTotal = modelB.total.score - modelA.total.score;
+    const deltaCls = deltaClass(deltaTotal);
+
+    $("compareTitle").textContent = `Gesamtvergleich: A = ${itA.type} ${itA.label}  |  B = ${itB.type} ${itB.label}`;
+    $("compareTotalLine").textContent = `A ${modelA.total.score.toFixed(1)} / 100  vs  B ${modelB.total.score.toFixed(1)} / 100`;
+    $("compareDeltaLine").innerHTML = `Δ (B − A): <span class="${deltaCls}">${deltaTotal >= 0 ? "+" : ""}${deltaTotal.toFixed(1)}</span>`;
+
+    const badgeB = totalBadgeFromScore(modelB.total.score);
+    $("compareTotalBadge").className = `badge ${badgeB.cls}`;
+    $("compareTotalBadge").textContent = `${badgeB.text}`;
+
+    // sections
+    const host = $("compareSections");
+    host.innerHTML = "";
+
+    modelA.sections.forEach(secA => {
+      const secB = modelB.sections.find(s => s.id === secA.id);
+      const cfg = CONFIG.sections.find(s => s.id === secA.id);
+      const d = (secB.score - secA.score);
+      const dCls = deltaClass(d);
+
+      let rows = "";
+      secA.kpis.forEach(kA => {
+        const kB = secB.kpis.find(x => x.id === kA.id);
+        const dv = (kB.value - kA.value);
+
+        // delta formatting by type
+        let dvText = "";
+        if(kA.type === "pct") dvText = `${dv >= 0 ? "+" : ""}${fmt(dv)} %`;
+        else if(kA.type === "eur0") dvText = `${dv >= 0 ? "+" : ""}${fmtEUR(dv)} €`;
+        else dvText = `${dv >= 0 ? "+" : ""}${fmt(dv,2)}`;
+
+        const valLine = `${kA.valueText} → ${kB.valueText}`;
+        const dvCls = deltaClass(dv);
+
+        rows += `
+          <div class="kpiRow">
+            <div>
+              <div class="kpiName">- ${kA.name}</div>
+              <div class="kpiExplain">${kA.explain}</div>
+              <div class="kpiMeta">A: ${kA.badgeText} | B: ${kB.badgeText} • Δ: <span class="${dvCls}">${dvText}</span></div>
+            </div>
+            <div class="kpiValue">${valLine}</div>
+            <span class="badge ${totalBadgeFromScore(kB.score).cls}">B KPI-Score: ${kB.score.toFixed(1)}</span>
+          </div>
+        `;
+      });
+
+      const box = document.createElement("div");
+      box.className = "sectionBox";
+      box.innerHTML = `
+        <div class="sectionHead">
+          <div>
+            <div class="sectionTitleRow">
+              <span class="dot ${cfg.dotClass}"></span>
+              <div>
+                <div class="sectionName">${cfg.titleEmoji} ${cfg.name} <span class="small">(25%)</span></div>
+                <div class="sectionWeight">
+                  A: <b>${secA.score.toFixed(1)}</b> • B: <b>${secB.score.toFixed(1)}</b>
+                  • Δ: <span class="${dCls}">${d >= 0 ? "+" : ""}${d.toFixed(1)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <span class="badge ${secB.badgeClass}">B: ${secB.badge}</span>
+        </div>
+        <div class="kpiList">${rows}</div>
+      `;
+      host.appendChild(box);
+    });
+
+    $("compareOut").style.display = "block";
+
+    // store compare models for PDF
+    window.__COMPARE__ = { itA, itB, modelA, modelB };
+  }
+
+  function exportComparePDF(){
+    const data = window.__COMPARE__;
+    if(!data){ alert("Bitte zuerst einen Vergleich berechnen."); return; }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit:"mm", format:"a4" });
+
+    const margin = 12;
+    const maxW = 190;
+    const lh = 6;
+
+    const title = `KPI Vergleich – A: ${data.itA.type} ${data.itA.label}  vs  B: ${data.itB.type} ${data.itB.label}`;
+    doc.setFontSize(14);
+    doc.text(title, margin, 14);
+    doc.setFontSize(11);
+
+    const deltaTotal = data.modelB.total.score - data.modelA.total.score;
+    const lines = [
+      `Erstellt am: ${new Date().toLocaleString("de-DE")}`,
+      "",
+      `Gesamtscore A: ${data.modelA.total.score.toFixed(1)} / 100 (${data.modelA.total.badge})`,
+      `Gesamtscore B: ${data.modelB.total.score.toFixed(1)} / 100 (${data.modelB.total.badge})`,
+      `Δ (B − A): ${deltaTotal >= 0 ? "+" : ""}${deltaTotal.toFixed(1)}`,
+      "",
+      "Bereiche:"
+    ];
+
+    data.modelA.sections.forEach(secA => {
+      const secB = data.modelB.sections.find(s => s.id === secA.id);
+      const d = secB.score - secA.score;
+      lines.push(`- ${secA.name}: A ${secA.score.toFixed(1)} → B ${secB.score.toFixed(1)} (Δ ${d>=0?"+":""}${d.toFixed(1)})`);
+    });
+
+    const wrapped = doc.splitTextToSize(lines.join("\n"), maxW);
+    let y = 22;
+    wrapped.forEach(line => {
+      if(y > 285){ doc.addPage(); y = 12; }
+      doc.text(line, margin, y);
+      y += lh;
+    });
+
+    // Detail pages per section
+    data.modelA.sections.forEach(secA => {
+      const secB = data.modelB.sections.find(s => s.id === secA.id);
+      doc.addPage();
+      doc.setFontSize(13);
+      doc.text(`${secA.emoji} ${secA.name}`, margin, 14);
+      doc.setFontSize(11);
+      doc.text(`A: ${secA.score.toFixed(1)} / 100   |   B: ${secB.score.toFixed(1)} / 100   |   Δ: ${(secB.score-secA.score)>=0?"+":""}${(secB.score-secA.score).toFixed(1)}`, margin, 22);
+
+      const l = [];
+      l.push("");
+      l.push("KPIs (A → B):");
+      secA.kpis.forEach(kA => {
+        const kB = secB.kpis.find(x => x.id === kA.id);
+        const dv = kB.value - kA.value;
+
+        let dvText = "";
+        if(kA.type === "pct") dvText = `${dv >= 0 ? "+" : ""}${fmt(dv)} %`;
+        else if(kA.type === "eur0") dvText = `${dv >= 0 ? "+" : ""}${fmtEUR(dv)} €`;
+        else dvText = `${dv >= 0 ? "+" : ""}${fmt(dv,2)}`;
+
+        l.push(`- ${kA.name}: ${kA.valueText} → ${kB.valueText} (Δ ${dvText}) | A:${kA.badgeText} B:${kB.badgeText}`);
+      });
+
+      const ww = doc.splitTextToSize(l.join("\n"), maxW);
+      let yy = 32;
+      doc.setFontSize(10);
+      ww.forEach(line => {
+        if(yy > 285){ doc.addPage(); yy = 12; }
+        doc.text(line, margin, yy);
+        yy += lh;
+      });
+    });
+
+    doc.save(`KPI_Vergleich_${new Date().toISOString().slice(0,10)}.pdf`);
+  }
+
+  // ---------- Buttons / Events ----------
+  $("calc").addEventListener("click", () => { try { calculateAndRender(); } catch(e){ alert(e.message || "Fehler bei der Berechnung."); } });
+  $("pdf").addEventListener("click", () => { try { exportPDF(); } catch{ alert("PDF-Export fehlgeschlagen."); } });
 
   $("reset").addEventListener("click", () => {
     document.querySelectorAll("input").forEach(i => i.value = "");
+    $("periodLabel").value = "";
     $("results").style.display = "none";
     window.__PDF_MODEL__ = null;
   });
@@ -673,6 +1178,18 @@
     $("shopbesucher").value = "520.000";
     $("retouren").value = "55.000";
   });
+
+  $("savePeriod").addEventListener("click", saveCurrentAsPeriod);
+  $("refreshList").addEventListener("click", renderPeriodList);
+  $("goOverview").addEventListener("click", () => { setTab("overviewTab"); renderPeriodList(); });
+
+  $("refreshCompare").addEventListener("click", renderCompareSelects);
+  $("runCompare").addEventListener("click", () => { try { renderCompare(); } catch(e){ alert(e.message || "Vergleich fehlgeschlagen."); } });
+  $("comparePDF").addEventListener("click", () => { try { exportComparePDF(); } catch(e){ alert(e.message || "Vergleich-PDF fehlgeschlagen."); } });
+
+  // Initial
+  renderPeriodList();
+  renderCompareSelects();
 </script>
 </body>
 </html>
