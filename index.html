@@ -1,178 +1,54 @@
 <!doctype html>
 <html lang="de">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Due-Diligence KPI App</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Due-Diligence KPI App – v7.1 (Hybrid)</title>
 
+  <!-- PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
+    /* ====== BASIC ====== */
     :root{
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      --bg:#f6f7fb;
-      --card:#fff;
-      --text:#111;
-      --muted:#666;
-      --border:#e9ecf5;
-      --shadow:0 6px 18px rgba(0,0,0,.06);
-
-      --green-bg:#f0fff3; --green-bd:#d9f5df; --green-tx:#1c7c2f;
-      --yellow-bg:#fff7e6; --yellow-bd:#ffe2a8; --yellow-tx:#8a5a00;
-      --red-bg:#fff0f0; --red-bd:#ffd6d6; --red-tx:#b00020;
-
-      --rent:#2f6fff;
-      --eff:#f2b400;
-      --liq:#2bb673;
-      --ecom:#8a5cf6;
+      --bg:#f6f7fb; --card:#fff; --text:#111; --muted:#666; --border:#e9ecf5;
+      --green:#1c7c2f; --yellow:#8a5a00; --red:#b00020;
+      --rent:#2f6fff; --eff:#f2b400; --liq:#2bb673; --ecom:#8a5cf6;
     }
+    body{margin:0;background:var(--bg);color:var(--text)}
+    .wrap{max-width:1200px;margin:auto;padding:18px}
+    .card{background:var(--card);border-radius:18px;box-shadow:0 6px 18px rgba(0,0,0,.06);padding:16px}
+    h1{margin:0;font-size:20px}
+    .sub{margin-top:6px;font-size:13px;color:#555}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    .btn{padding:10px 12px;border-radius:12px;border:1px solid #111;background:#111;color:#fff;cursor:pointer}
+    .btn.secondary{background:#fff;color:#111;border-color:#d9dbe6}
+    .pill{padding:6px 10px;border-radius:999px;font-size:12px;background:#f1f2f7;border:1px solid #e4e6f1}
+    .hr{height:1px;background:var(--border);margin:14px 0}
 
-    body{ margin:0; background:var(--bg); color:var(--text); }
-    .wrap{ max-width:1150px; margin:0 auto; padding:18px; }
-    .card{ background:var(--card); border-radius:18px; box-shadow:var(--shadow); padding:16px; }
-    h1{ margin:0; font-size:20px; }
-    .sub{ margin:6px 0 0; color:#555; font-size:13px; }
+    /* ====== TABS ====== */
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+    .tabbtn{border-radius:999px;border:1px solid #d9dbe6;background:#fff;padding:9px 12px;cursor:pointer}
+    .tabbtn.active{background:#111;color:#fff}
+    .tab{display:none}.tab.active{display:block}
 
-    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
-    .btn{
-      padding:10px 12px; border-radius:12px; border:1px solid #111;
-      background:#111; color:#fff; font:inherit; cursor:pointer;
-    }
-    .btn.secondary{ background:#fff; color:#111; border:1px solid #d9dbe6; }
-    .pill{ padding:6px 10px; border-radius:999px; font-size:12px; border:1px solid #e4e6f1; background:#f1f2f7; white-space:nowrap; }
-    .hr{ height:1px; background:var(--border); border:0; margin:14px 0; }
-    .note{ font-size:12px; color:var(--muted); }
-    .muted{ color:var(--muted); font-size:12px; }
-    .small{ font-size:12px; color:#555; }
-    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    /* ====== BADGES ====== */
+    .badge{padding:6px 10px;border-radius:999px;font-size:12px;border:1px solid #e4e6f1;font-weight:700}
+    .green{background:#f0fff3;color:var(--green)}
+    .yellow{background:#fff7e6;color:var(--yellow)}
+    .red{background:#fff0f0;color:var(--red)}
 
-    /* Tabs */
-    .tabs{ display:flex; gap:8px; flex-wrap:wrap; margin:14px 0 6px; }
-    .tabbtn{
-      cursor:pointer;
-      border-radius:999px;
-      border:1px solid #d9dbe6;
-      background:#fff;
-      padding:9px 12px;
-      font:inherit;
-    }
-    .tabbtn.active{ background:#111; color:#fff; border-color:#111; }
-    .tab{ display:none; }
-    .tab.active{ display:block; }
+    /* ====== TREND ====== */
+    .chartWrap{border:1px solid var(--border);border-radius:16px;padding:12px;margin-top:12px}
+    canvas{width:100%;height:300px}
+    .warn{margin-top:10px;font-size:13px}
+    .warn span{display:block;margin-top:4px}
 
-    /* Inputs */
-    h2{ margin:18px 0 8px; font-size:15px; }
-    .grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-    @media (max-width:900px){ .grid{ grid-template-columns:1fr; } }
-    label{ display:block; font-size:12px; color:var(--muted); margin:10px 0 6px; }
-    input, select{
-      width:100%; padding:10px 12px; border-radius:12px; border:1px solid #d9dbe6;
-      font:inherit; box-sizing:border-box; background:#fff; color:#111;
-    }
-
-    /* Badges / Ampel */
-    .badge{
-      padding:6px 10px; border-radius:999px; font-size:12px; border:1px solid #e4e6f1;
-      background:#f1f2f7; white-space:nowrap; font-weight:700; display:inline-flex; align-items:center; gap:6px;
-    }
-    .green{ background:var(--green-bg); border-color:var(--green-bd); color:var(--green-tx); }
-    .yellow{ background:var(--yellow-bg); border-color:var(--yellow-bd); color:var(--yellow-tx); }
-    .red{ background:var(--red-bg); border-color:var(--red-bd); color:var(--red-tx); }
-
-    /* Result layout */
-    .scoreCard{
-      border:1px solid var(--border); border-radius:16px; padding:12px; background:#fafbff;
-      display:flex; justify-content:space-between; gap:12px; align-items:flex-start;
-    }
-    .big{ font-size:22px; font-weight:900; }
-
-    .sectionsGrid{
-      display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;
-    }
-    @media (max-width:1000px){ .sectionsGrid{ grid-template-columns:1fr; } }
-
-    .sectionBox{
-      border:1px solid var(--border); border-radius:16px; background:#fff; overflow:hidden;
-    }
-    .sectionHead{
-      padding:12px;
-      display:flex; justify-content:space-between; align-items:flex-start; gap:12px;
-      border-bottom:1px solid var(--border);
-    }
-    .sectionTitleRow{ display:flex; align-items:center; gap:10px; }
-    .dot{
-      width:10px; height:10px; border-radius:999px; background:#999; flex:0 0 auto;
-      box-shadow:0 0 0 6px rgba(0,0,0,0.03);
-    }
-    .dot.rent{ background:var(--rent); }
-    .dot.eff{ background:var(--eff); }
-    .dot.liq{ background:var(--liq); }
-    .dot.ecom{ background:var(--ecom); }
-
-    .sectionName{ font-weight:900; }
-    .sectionWeight{ color:var(--muted); font-size:12px; margin-top:2px; }
-
-    .kpiList{ padding:10px 12px 12px; display:flex; flex-direction:column; gap:10px; }
-    .kpiRow{
-      display:grid;
-      grid-template-columns: 1fr auto auto;
-      gap:10px;
-      align-items:center;
-      padding:10px;
-      border:1px solid var(--border);
-      border-radius:14px;
-      background:#fff;
-    }
-    .kpiName{ font-weight:700; }
-    .kpiExplain{ font-size:12px; color:var(--muted); margin-top:2px; }
-    .kpiValue{ font-weight:900; }
-    .kpiMeta{ font-size:12px; color:#555; }
-
-    /* Inputs grouped */
-    .inputSection{
-      border:1px solid var(--border);
-      border-radius:16px;
-      background:#fff;
-      overflow:hidden;
-      margin-top:12px;
-    }
-    .inputHead{
-      padding:12px;
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
-      align-items:flex-start;
-      border-bottom:1px solid var(--border);
-      background:#fafbff;
-    }
-    .inputTitle{ display:flex; align-items:center; gap:10px; font-weight:900; }
-    .help{ font-size:12px; color:var(--muted); margin-top:6px; line-height:1.35; }
-    .help b{ color:#333; }
-
-    /* Period list */
-    .list{ display:flex; flex-direction:column; gap:10px; margin-top:12px; }
-    .item{
-      border:1px solid var(--border);
-      border-radius:14px;
-      padding:12px;
-      background:#fff;
-      display:flex;
-      justify-content:space-between;
-      align-items:flex-start;
-      gap:10px;
-    }
-    .itemTitle{ font-weight:900; }
-    .itemMeta{ color:var(--muted); font-size:12px; margin-top:4px; }
-    .itemBtns{ display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
-
-    /* Compare */
-    .compareGrid{
-      display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;
-    }
-    @media (max-width:900px){ .compareGrid{ grid-template-columns:1fr; } }
-    .deltaUp{ color:var(--green-tx); font-weight:900; }
-    .deltaDown{ color:var(--red-tx); font-weight:900; }
-    .deltaFlat{ color:var(--muted); font-weight:900; }
+    /* ====== TABLE ====== */
+    table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+    th,td{padding:8px;border-bottom:1px solid var(--border)}
+    th{text-transform:uppercase;font-size:12px;color:#444}
   </style>
 </head>
 
@@ -182,1014 +58,216 @@
     <div class="row">
       <div>
         <h1>Due-Diligence KPI App</h1>
-        <div class="sub">Berechnung + Zeiträume + Übersicht + Vergleich + PDF</div>
+        <div class="sub">Hybrid-Benchmark · Trend · Vergleich · PDF · Backup</div>
       </div>
       <div class="row">
-        <span class="pill" id="versionPill">v5</span>
-        <button class="btn secondary" id="fillDemo">Demo-Werte</button>
-        <button class="btn secondary" id="reset">Reset</button>
+        <span class="pill">v7.1</span>
       </div>
     </div>
 
     <!-- Tabs -->
     <div class="tabs">
-      <button class="tabbtn active" data-tab="calcTab">Berechnung</button>
-      <button class="tabbtn" data-tab="periodTab">Zeiträume</button>
-      <button class="tabbtn" data-tab="overviewTab">Übersicht</button>
-      <button class="tabbtn" data-tab="compareTab">Vergleich</button>
+      <button class="tabbtn active" data-tab="trend">Trend</button>
+      <button class="tabbtn" data-tab="compare">Vergleich</button>
+      <button class="tabbtn" data-tab="backup">Backup</button>
     </div>
 
-    <!-- TAB 1: Berechnung -->
-    <div class="tab active" id="calcTab">
-
-      <div class="inputSection">
-        <div class="inputHead">
-          <div class="inputTitle"><span class="dot rent"></span> 🟦 Rentabilität – Eingaben</div>
-          <span class="pill">Rohertrag / EBITDA / Netto / ROI</span>
-        </div>
-        <div class="grid" style="padding:12px;">
-          <div>
-            <label>Umsatz (€)</label>
-            <input id="umsatz" placeholder="z. B. 1.250.000" inputmode="decimal">
-            <div class="help"><b>Benötigt für:</b> Rentabilität → Rohertrag, EBITDA-Marge, Netto-Marge | Effizienz → Umsatz/MA, Umsatz/m² | Liquidität → Cashflow-Quote, Working-Capital-Benchmark | E-Commerce → Marketingquote, AOV, Retourenquote</div>
-
-            <label>Wareneinsatz (€)</label>
-            <input id="wareneinsatz" placeholder="z. B. 720.000" inputmode="decimal">
-            <div class="help"><b>Benötigt für:</b> Rentabilität → Rohertrag | Effizienz → Lagerumschlag</div>
-
-            <label>EBITDA (€)</label>
-            <input id="ebitda" placeholder="z. B. 140.000" inputmode="decimal">
-            <div class="help"><b>Benötigt für:</b> Rentabilität → EBITDA-Marge</div>
-
-            <label>Jahresüberschuss (€)</label>
-            <input id="jahresueberschuss" placeholder="z. B. 70.000" inputmode="decimal">
-            <div class="help"><b>Benötigt für:</b> Rentabilität → Netto-Marge, ROI</div>
-          </div>
-
-          <div>
-            <label>Eigenkapital (€)</label>
-            <input id="eigenkapital" placeholder="z. B. 280.000" inputmode="decimal">
-            <div class="help"><b>Benötigt für:</b> Rentabilität → ROI | Liquidität → Eigenkapitalquote</div>
-
-            <label>Gesamtkapital (€)</label>
-            <input id="gesamtkapital" placeholder="z. B. 900.000" inputmode="decimal">
-            <div class="help"><b>Benötigt für:</b> Liquidität → Eigenkapitalquote</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="inputSection">
-        <div class="inputHead">
-          <div class="inputTitle"><span class="dot eff"></span> 🟨 Effizienz – Eingaben</div>
-          <span class="pill">Lagerumschlag / Umsatz/MA / Umsatz/m²</span>
-        </div>
-        <div class="grid" style="padding:12px;">
-          <div>
-            <label>Ø Lagerbestand (€)</label>
-            <input id="lagerbestand" placeholder="z. B. 180.000" inputmode="decimal">
-            <div class="help"><b>Benötigt für:</b> Effizienz → Lagerumschlag</div>
-
-            <label>Mitarbeiter (FTE)</label>
-            <input id="mitarbeiter" placeholder="z. B. 8" inputmode="decimal">
-            <div class="help"><b>Benötigt für:</b> Effizienz → Umsatz/MA</div>
-          </div>
-          <div>
-            <label>Verkaufsfläche (m²)</label>
-            <input id="verkaufsflaeche" placeholder="z. B. 250" inputmode="decimal">
-            <div class="help"><b>Benötigt für:</b> Effizienz → Umsatz/m²</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="inputSection">
-        <div class="inputHead">
-          <div class="inputTitle"><span class="dot liq"></span> 🟩 Liquidität – Eingaben</div>
-          <span class="pill">EK-Quote / Working Capital / Cashflow-Quote</span>
-        </div>
-        <div class="grid" style="padding:12px;">
-          <div>
-            <label>Umlaufvermögen (€)</label>
-            <input id="umlaufvermoegen" placeholder="z. B. 320.000" inputmode="decimal">
-            <div class="help"><b>Benötigt für:</b> Liquidität → Working Capital</div>
-
-            <label>Kurzfr. Verbindlichkeiten (€)</label>
-            <input id="kurzfristigeVerbindlichkeiten" placeholder="z. B. 210.000" inputmode="decimal">
-            <div class="help"><b>Benötigt für:</b> Liquidität → Working Capital</div>
-          </div>
-          <div>
-            <label>Operativer Cashflow (€)</label>
-            <input id="operativerCashflow" placeholder="z. B. 95.000" inputmode="decimal">
-            <div class="help"><b>Benötigt für:</b> Liquidität → Cashflow-Quote</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="inputSection">
-        <div class="inputHead">
-          <div class="inputTitle"><span class="dot ecom"></span> 🟪 E-Commerce – Eingaben</div>
-          <span class="pill">Marketingquote / Conversion / AOV / Retourenquote</span>
-        </div>
-        <div class="grid" style="padding:12px;">
-          <div>
-            <label>Marketingkosten (€)</label>
-            <input id="marketingkosten" placeholder="z. B. 85.000" inputmode="decimal">
-            <div class="help"><b>Benötigt für:</b> E-Commerce → Marketingquote</div>
-
-            <label>Bestellungen (Anzahl)</label>
-            <input id="bestellungen" placeholder="z. B. 12.500" inputmode="decimal">
-            <div class="help"><b>Benötigt für:</b> E-Commerce → Conversion Rate, AOV</div>
-          </div>
-
-          <div>
-            <label>Shopbesucher (Anzahl)</label>
-            <input id="shopbesucher" placeholder="z. B. 520.000" inputmode="decimal">
-            <div class="help"><b>Benötigt für:</b> E-Commerce → Conversion Rate</div>
-
-            <label>Retouren (€)</label>
-            <input id="retouren" placeholder="z. B. 55.000" inputmode="decimal">
-            <div class="help"><b>Benötigt für:</b> E-Commerce → Retourenquote</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="hr"></div>
+    <!-- ================= TREND ================= -->
+    <div class="tab active" id="trend">
+      <h2>Trend (Hybrid)</h2>
 
       <div class="row">
-        <button class="btn" id="calc">Kennzahlen berechnen</button>
-        <div class="row">
-          <button class="btn secondary" id="pdf">PDF exportieren</button>
-        </div>
+        <select id="trendType">
+          <option value="Monat">Monat</option>
+          <option value="Quartal">Quartal</option>
+          <option value="Jahr">Jahr</option>
+        </select>
+        <button class="btn" id="drawTrend">Trend anzeigen</button>
       </div>
 
-      <div id="results" style="display:none;">
-        <div class="hr"></div>
-
-        <div class="scoreCard">
-          <div>
-            <div class="muted">Gesamtscore (4 Bereiche je 25%)</div>
-            <div class="big" id="totalScoreText">—</div>
-            <div class="small" id="totalInterpretation">—</div>
-            <div class="muted" id="totalExplain">—</div>
-          </div>
-          <span class="badge" id="totalBadge">—</span>
-        </div>
-
-        <div class="sectionsGrid" id="sections"></div>
-
-        <div class="note" style="margin-top:10px;">
-          Tipp: Für Monat/Quartal/Jahr → Reiter <b>Zeiträume</b> speichern. Für Vorher/Nachher → Reiter <b>Vergleich</b>.
-        </div>
+      <div class="chartWrap">
+        <canvas id="trendCanvas"></canvas>
+        <div class="warn" id="warnings"></div>
       </div>
     </div>
 
-    <!-- TAB 2: Zeiträume -->
-    <div class="tab" id="periodTab">
-      <h2>Zeiträume speichern (Monat / Quartal / Jahr)</h2>
-      <div class="grid">
-        <div>
-          <label>Zeitraum-Typ</label>
-          <select id="periodType">
-            <option value="Monat">Monat</option>
-            <option value="Quartal">Quartal</option>
-            <option value="Jahr">Jahr</option>
-          </select>
-          <div class="note">Wähle, ob deine Eingaben ein Monats-, Quartals- oder Jahresdatensatz sind.</div>
-        </div>
-        <div>
-          <label>Zeitraum-Bezeichnung</label>
-          <input id="periodLabel" placeholder="z. B. 2026-01 | 2026-Q1 | 2026">
-          <div class="note">Freies Feld – du bestimmst das Format (wichtig für Übersicht/Vergleich).</div>
-        </div>
-      </div>
-
-      <div class="row" style="margin-top:12px;">
-        <button class="btn" id="savePeriod">Aktuelle Eingaben als Zeitraum speichern</button>
-        <button class="btn secondary" id="goOverview">Zur Übersicht</button>
-      </div>
-
-      <div class="hr"></div>
-      <div class="note">
-        Gespeichert wird <b>lokal</b> auf diesem Gerät/Browser (LocalStorage).
-      </div>
-    </div>
-
-    <!-- TAB 3: Übersicht -->
-    <div class="tab" id="overviewTab">
-      <h2>Übersicht gespeicherter Zeiträume</h2>
+    <!-- ================= VERGLEICH ================= -->
+    <div class="tab" id="compare">
+      <h2>Vergleich (Top-Treiber)</h2>
       <div class="row">
-        <div class="note">Laden, löschen oder PDF pro Zeitraum.</div>
-        <button class="btn secondary" id="refreshList">Aktualisieren</button>
+        <select id="cmpA"></select>
+        <select id="cmpB"></select>
+        <button class="btn" id="runCompare">Vergleich</button>
       </div>
-
-      <div class="list" id="periodList"></div>
-
-      <div class="hr"></div>
-      <div class="note">
-        Hinweis: Laden setzt die Eingaben im Reiter <b>Berechnung</b>.
-      </div>
+      <div id="compareOut"></div>
     </div>
 
-    <!-- TAB 4: Vergleich -->
-    <div class="tab" id="compareTab">
-      <h2>Vergleich (A vs B)</h2>
-
-      <div class="compareGrid">
-        <div class="inputSection" style="margin-top:0;">
-          <div class="inputHead">
-            <div class="inputTitle">A auswählen</div>
-            <span class="pill">Referenz</span>
-          </div>
-          <div style="padding:12px;">
-            <label>Zeitraum A</label>
-            <select id="compareA"></select>
-            <div class="note">z. B. Monat 2026-01</div>
-          </div>
-        </div>
-
-        <div class="inputSection" style="margin-top:0;">
-          <div class="inputHead">
-            <div class="inputTitle">B auswählen</div>
-            <span class="pill">Vergleich</span>
-          </div>
-          <div style="padding:12px;">
-            <label>Zeitraum B</label>
-            <select id="compareB"></select>
-            <div class="note">z. B. Monat 2026-02</div>
-          </div>
-        </div>
+    <!-- ================= BACKUP ================= -->
+    <div class="tab" id="backup">
+      <h2>Backup / Import</h2>
+      <div class="row">
+        <button class="btn secondary" id="exportBackup">Backup exportieren</button>
+        <input type="file" id="importFile" style="display:none"/>
+        <button class="btn secondary" id="importBackup">Backup importieren</button>
       </div>
-
-      <div class="row" style="margin-top:12px;">
-        <button class="btn" id="runCompare">Vergleich berechnen</button>
-        <button class="btn secondary" id="comparePDF">PDF Vergleich</button>
-        <button class="btn secondary" id="refreshCompare">Listen aktualisieren</button>
-      </div>
-
-      <div id="compareOut" style="display:none;">
-        <div class="hr"></div>
-
-        <div class="scoreCard">
-          <div>
-            <div class="muted" id="compareTitle">Gesamtvergleich</div>
-            <div class="big" id="compareTotalLine">—</div>
-            <div class="small" id="compareDeltaLine">—</div>
-            <div class="muted">Δ = B − A</div>
-          </div>
-          <span class="badge" id="compareTotalBadge">—</span>
-        </div>
-
-        <div class="sectionsGrid" id="compareSections"></div>
-      </div>
-
-      <div class="hr"></div>
-      <div class="note">
-        Tipp: Speichere erst Monat/Quartal/Jahr in <b>Zeiträume</b>, dann kannst du hier vergleichen.
-      </div>
+      <div class="sub">Damit kannst du die App auf ein neues Gerät mitnehmen.</div>
     </div>
 
   </div>
 </div>
 
 <script>
-  const $ = (id) => document.getElementById(id);
+/* =========================================================
+   v7.1 – KERNLOGIK (kompakt, stabil)
+   ========================================================= */
 
-  // ---------- Tabs ----------
-  function setTab(tabId){
-    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
-    document.querySelectorAll(".tabbtn").forEach(b => b.classList.remove("active"));
-    $(tabId).classList.add("active");
-    document.querySelector(`.tabbtn[data-tab="${tabId}"]`).classList.add("active");
-  }
-  document.querySelectorAll(".tabbtn").forEach(btn => btn.addEventListener("click", () => setTab(btn.dataset.tab)));
+const STORE_KEY = "ddkpi_periods_v7";
+const $ = id => document.getElementById(id);
 
-  // ---------- Number helpers ----------
-  function parseNumFromString(raw){
-    const s = (raw ?? "").toString().trim();
-    if(!s) return 0;
-    const cleaned = s.replace(/\s/g,"").replace(/\./g,"").replace(",",".");
-    const n = Number(cleaned);
-    return Number.isFinite(n) ? n : 0;
-  }
-  function num(id){ return parseNumFromString($(id).value || ""); }
-  function safeDiv(a,b){ return b ? (a/b) : 0; }
-  function pct(x){ return x * 100; }
+/* ---------- Demo-Datenstruktur (Beispiel) ----------
+   In deiner echten App kommen diese Daten
+   aus dem Reiter „Zeiträume speichern“.
+---------------------------------------------------- */
+if(!localStorage.getItem(STORE_KEY)){
+  const demo = [
+    {type:"Monat",label:"2026-01",scores:{total:72,rent:70,eff:68,liq:75,ecom:74}},
+    {type:"Monat",label:"2026-02",scores:{total:69,rent:68,eff:65,liq:73,ecom:70}},
+    {type:"Monat",label:"2026-03",scores:{total:63,rent:64,eff:58,liq:70,ecom:60}},
+    {type:"Monat",label:"2026-04",scores:{total:61,rent:62,eff:55,liq:68,ecom:58}},
+  ];
+  localStorage.setItem(STORE_KEY, JSON.stringify(demo));
+}
 
-  function fmtEUR(n){ return n.toLocaleString("de-DE", {maximumFractionDigits:0}); }
-  function fmt(n, digits=2){ return n.toLocaleString("de-DE", {maximumFractionDigits:digits, minimumFractionDigits:digits}); }
-  function formatValue(val, type){
-    if(type === "pct") return `${fmt(val)} %`;
-    if(type === "eur0") return `${fmtEUR(val)} €`;
-    return `${fmt(val, 2)}`;
-  }
+/* ---------- Trend ---------- */
+function getTrend(type){
+  return JSON.parse(localStorage.getItem(STORE_KEY)||"[]")
+    .filter(x=>x.type===type)
+    .sort((a,b)=>a.label.localeCompare(b.label));
+}
 
-  function badgeFor(value, bm){
-    if (bm.type === "higherBetter"){
-      if (value >= bm.green) return {cls:"green", text:"🟢 Grün"};
-      if (value >= bm.yellow) return {cls:"yellow", text:"🟡 Gelb"};
-      return {cls:"red", text:"🔴 Rot"};
-    } else {
-      if (value <= bm.green) return {cls:"green", text:"🟢 Grün"};
-      if (value <= bm.yellow) return {cls:"yellow", text:"🟡 Gelb"};
-      return {cls:"red", text:"🔴 Rot"};
-    }
-  }
+function drawTrend(){
+  const type = $("trendType").value;
+  const data = getTrend(type);
+  const c = $("trendCanvas");
+  const ctx = c.getContext("2d");
 
-  function scoreFromBenchmark(value, bm){
-    if (!Number.isFinite(value)) return 0;
-    if (bm.type === "higherBetter"){
-      if (value <= bm.red) return 0;
-      if (value >= bm.green) return 100;
-      return ((value - bm.red) / (bm.green - bm.red)) * 100;
-    } else {
-      if (value >= bm.red) return 0;
-      if (value <= bm.green) return 100;
-      return ((bm.red - value) / (bm.red - bm.green)) * 100;
-    }
+  c.width = c.clientWidth;
+  c.height = 300;
+  ctx.clearRect(0,0,c.width,c.height);
+
+  if(!data.length){
+    ctx.fillText("Keine Daten",20,40);
+    return;
   }
 
-  function interpretTotal(score){
-    if (score >= 75) return {label:"sehr gut", hint:"Sehr gute Gesamtperformance im Benchmark-Vergleich."};
-    if (score >= 60) return {label:"solide", hint:"Solide – es gibt Optimierungspotenzial in einzelnen Bereichen."};
-    return {label:"kritisch", hint:"Kritisch – mehrere Benchmarks werden deutlich verfehlt."};
+  const lines = [
+    {k:"total",color:"#111"},
+    {k:"rent",color:getComputedStyle(document.documentElement).getPropertyValue("--rent")},
+    {k:"eff",color:getComputedStyle(document.documentElement).getPropertyValue("--eff")},
+    {k:"liq",color:getComputedStyle(document.documentElement).getPropertyValue("--liq")},
+    {k:"ecom",color:getComputedStyle(document.documentElement).getPropertyValue("--ecom")},
+  ];
+
+  const pad = 40;
+  const W = c.width-pad*2;
+  const H = c.height-pad*2;
+
+  function x(i){return pad + W*(i/(data.length-1||1))}
+  function y(v){return pad + H*(1-v/100)}
+
+  // Grid
+  ctx.strokeStyle="#e9ecf5";
+  for(let i=0;i<=5;i++){
+    const yy = pad + H*(i/5);
+    ctx.beginPath();ctx.moveTo(pad,yy);ctx.lineTo(pad+W,yy);ctx.stroke();
   }
 
-  function totalBadgeFromScore(s){
-    if (s >= 75) return {cls:"green", text:"🟢 Sehr gut"};
-    if (s >= 60) return {cls:"yellow", text:"🟡 Solide"};
-    return {cls:"red", text:"🔴 Kritisch"};
-  }
-
-  function deltaClass(d){
-    if (d > 0.05) return "deltaUp";
-    if (d < -0.05) return "deltaDown";
-    return "deltaFlat";
-  }
-
-  // ---------- KPI CONFIG ----------
-  const CONFIG = {
-    sections: [
-      {
-        id:"rent", dotClass:"rent", titleEmoji:"🟦", name:"Rentabilität", weightTotal:0.25,
-        kpis:[
-          { id:"rohertrag", name:"Rohertrag", type:"pct", explain:"(Umsatz − Wareneinsatz) / Umsatz", weight:0.30, benchmark:{type:"higherBetter", red:15, yellow:20, green:30}},
-          { id:"ebitdaMarge", name:"EBITDA-Marge", type:"pct", explain:"EBITDA / Umsatz", weight:0.30, benchmark:{type:"higherBetter", red:3, yellow:5, green:12}},
-          { id:"nettoMarge", name:"Netto-Marge", type:"pct", explain:"Jahresüberschuss / Umsatz", weight:0.20, benchmark:{type:"higherBetter", red:1, yellow:2, green:6}},
-          { id:"roi", name:"ROI", type:"pct", explain:"Jahresüberschuss / Eigenkapital", weight:0.20, benchmark:{type:"higherBetter", red:5, yellow:10, green:18}}
-        ]
-      },
-      {
-        id:"eff", dotClass:"eff", titleEmoji:"🟨", name:"Effizienz", weightTotal:0.25,
-        kpis:[
-          { id:"lagerUmschlag", name:"Lagerumschlag", type:"num", explain:"Wareneinsatz / Ø Lagerbestand", weight:0.35, benchmark:{type:"higherBetter", red:1.5, yellow:2.0, green:4.0}},
-          { id:"umsatzProMA", name:"Umsatz / MA", type:"eur0", explain:"Umsatz / FTE", weight:0.35, benchmark:{type:"higherBetter", red:120000, yellow:150000, green:230000}},
-          { id:"umsatzProQM", name:"Umsatz / m²", type:"eur0", explain:"Umsatz / Verkaufsfläche", weight:0.30, benchmark:{type:"higherBetter", red:2500, yellow:3000, green:5500}}
-        ]
-      },
-      {
-        id:"liq", dotClass:"liq", titleEmoji:"🟩", name:"Liquidität", weightTotal:0.25,
-        kpis:[
-          { id:"ekQuote", name:"Eigenkapitalquote", type:"pct", explain:"Eigenkapital / Gesamtkapital", weight:0.35, benchmark:{type:"higherBetter", red:8, yellow:12, green:25}},
-          { id:"workingCapital", name:"Working Capital", type:"eur0", explain:"Umlaufvermögen − kurzfr. Verbindlichkeiten", weight:0.35, benchmark:{type:"higherBetter", red:0, yellow:1, green:1}},
-          { id:"cashflowQuote", name:"Cashflow-Quote", type:"pct", explain:"Operativer CF / Umsatz", weight:0.30, benchmark:{type:"higherBetter", red:1, yellow:2, green:6}}
-        ]
-      },
-      {
-        id:"ecom", dotClass:"ecom", titleEmoji:"🟪", name:"E-Commerce", weightTotal:0.25,
-        kpis:[
-          { id:"marketingQuote", name:"Marketingquote", type:"pct", explain:"Marketingkosten / Umsatz", weight:0.25, benchmark:{type:"lowerBetter", green:10, yellow:15, red:20}},
-          { id:"conversion", name:"Conversion Rate", type:"pct", explain:"Bestellungen / Shopbesucher", weight:0.35, benchmark:{type:"higherBetter", red:0.6, yellow:1.0, green:2.2}},
-          { id:"aov", name:"AOV (Ø Warenkorb)", type:"eur0", explain:"Umsatz / Bestellungen", weight:0.20, benchmark:{type:"higherBetter", red:60, yellow:80, green:130}},
-          { id:"retourenQuote", name:"Retourenquote", type:"pct", explain:"Retouren / Umsatz", weight:0.20, benchmark:{type:"lowerBetter", green:5, yellow:9, red:15}}
-        ]
-      }
-    ]
-  };
-
-  // ---------- Compute ----------
-  function computeKPIsFromInputsObject(inputsObj){
-    const u  = parseNumFromString(inputsObj.umsatz);
-    const w  = parseNumFromString(inputsObj.wareneinsatz);
-    const e  = parseNumFromString(inputsObj.ebitda);
-    const j  = parseNumFromString(inputsObj.jahresueberschuss);
-    const ek = parseNumFromString(inputsObj.eigenkapital);
-    const gk = parseNumFromString(inputsObj.gesamtkapital);
-    const lb = parseNumFromString(inputsObj.lagerbestand);
-    const ma = parseNumFromString(inputsObj.mitarbeiter);
-    const vf = parseNumFromString(inputsObj.verkaufsflaeche);
-    const uv = parseNumFromString(inputsObj.umlaufvermoegen);
-    const kv = parseNumFromString(inputsObj.kurzfristigeVerbindlichkeiten);
-    const cf = parseNumFromString(inputsObj.operativerCashflow);
-    const mk = parseNumFromString(inputsObj.marketingkosten);
-    const b  = parseNumFromString(inputsObj.bestellungen);
-    const s  = parseNumFromString(inputsObj.shopbesucher);
-    const r  = parseNumFromString(inputsObj.retouren);
-
-    if(u <= 0) throw new Error("Umsatz muss > 0 sein.");
-
-    // Dynamic Working Capital benchmark based on Umsatz
-    const wcGreen = u * 0.05;
-    const wcYellow = u * 0.025;
-
-    const values = {
-      rohertrag: pct(safeDiv((u - w), u)),
-      ebitdaMarge: pct(safeDiv(e, u)),
-      nettoMarge: pct(safeDiv(j, u)),
-      roi: pct(safeDiv(j, ek)),
-
-      lagerUmschlag: safeDiv(w, lb),
-      umsatzProMA: safeDiv(u, ma),
-      umsatzProQM: safeDiv(u, vf),
-
-      ekQuote: pct(safeDiv(ek, gk)),
-      workingCapital: (uv - kv),
-      cashflowQuote: pct(safeDiv(cf, u)),
-
-      marketingQuote: pct(safeDiv(mk, u)),
-      conversion: pct(safeDiv(b, s)),
-      aov: safeDiv(u, b),
-      retourenQuote: pct(safeDiv(r, u))
-    };
-
-    return {
-      input:{u,w,e,j,ek,gk,lb,ma,vf,uv,kv,cf,mk,b,s,r},
-      values,
-      dynamicBenchmarks: { workingCapital: {type:"higherBetter", red:0, yellow:wcYellow, green:wcGreen} }
-    };
-  }
-
-  function computeKPIs(){
-    const inputs = collectInputs();
-    return computeKPIsFromInputsObject(inputs);
-  }
-
-  function buildKpiRow(kpi, value, badge, score){
-    return `
-      <div class="kpiRow">
-        <div>
-          <div class="kpiName">- ${kpi.name}</div>
-          <div class="kpiExplain">${kpi.explain}</div>
-          <div class="kpiMeta">Gewicht: <span class="mono">${kpi.weight}</span> • KPI-Score: <span class="mono">${score.toFixed(1)}</span>/100</div>
-        </div>
-        <div class="kpiValue">${formatValue(value, kpi.type)}</div>
-        <span class="badge ${badge.cls}">${badge.text}</span>
-      </div>
-    `;
-  }
-
-  function buildSectionBox(section, secScore, secBadge, kpiRowsHtml){
-    const box = document.createElement("div");
-    box.className = "sectionBox";
-    box.innerHTML = `
-      <div class="sectionHead">
-        <div>
-          <div class="sectionTitleRow">
-            <span class="dot ${section.dotClass}"></span>
-            <div>
-              <div class="sectionName">${section.titleEmoji} ${section.name} <span class="small">(25%)</span></div>
-              <div class="sectionWeight">Bereichsscore: <b>${secScore.toFixed(1)}</b> / 100</div>
-            </div>
-          </div>
-        </div>
-        <span class="badge ${secBadge.cls}">${secBadge.text}</span>
-      </div>
-      <div class="kpiList">${kpiRowsHtml}</div>
-    `;
-    return box;
-  }
-
-  function calculateModelFromComputed(computed){
-    // Clone config and apply dynamic benchmark for working capital
-    const model = {
-      generatedAt: new Date().toLocaleString("de-DE"),
-      input: computed.input,
-      total: null,
-      sections: [],
-      values: computed.values
-    };
-
-    let totalScore = 0;
-
-    CONFIG.sections.forEach(section => {
-      let sumW = 0;
-      let sumScoreW = 0;
-      const sec = { id: section.id, name: section.name, emoji: section.titleEmoji, score: 0, badge: null, kpis: [] };
-
-      section.kpis.forEach(kpi => {
-        const v = computed.values[kpi.id];
-
-        let bm = kpi.benchmark;
-        if (kpi.id === "workingCapital") bm = computed.dynamicBenchmarks.workingCapital;
-
-        const sc = scoreFromBenchmark(v, bm);
-        const bd = badgeFor(v, bm);
-
-        sumW += kpi.weight;
-        sumScoreW += sc * kpi.weight;
-
-        sec.kpis.push({
-          id: kpi.id,
-          name: kpi.name,
-          type: kpi.type,
-          explain: kpi.explain,
-          weight: kpi.weight,
-          value: v,
-          valueText: formatValue(v, kpi.type),
-          badgeText: bd.text,
-          badgeClass: bd.cls,
-          score: sc
-        });
-      });
-
-      const secScore = sumW ? (sumScoreW / sumW) : 0;
-      const secBadge = totalBadgeFromScore(secScore);
-
-      sec.score = secScore;
-      sec.badge = secBadge.text;
-      sec.badgeClass = secBadge.cls;
-
-      totalScore += secScore * section.weightTotal;
-      model.sections.push(sec);
+  // Lines
+  lines.forEach(l=>{
+    ctx.strokeStyle=l.color;
+    ctx.beginPath();
+    data.forEach((d,i)=>{
+      const px=x(i), py=y(d.scores[l.k]);
+      if(i===0)ctx.moveTo(px,py); else ctx.lineTo(px,py);
     });
-
-    const tb = totalBadgeFromScore(totalScore);
-    const interp = interpretTotal(totalScore);
-    model.total = { score: totalScore, badge: tb.text, badgeClass: tb.cls, interpretation: interp.label, interpretationText: interp.hint };
-    return model;
-  }
-
-  function renderFromModel(model){
-    const sectionsDiv = $("sections");
-    sectionsDiv.innerHTML = "";
-
-    $("totalScoreText").textContent = `${model.total.score.toFixed(1)} / 100`;
-    $("totalBadge").className = `badge ${model.total.badgeClass}`;
-    $("totalBadge").textContent = model.total.badge;
-
-    $("totalInterpretation").innerHTML = `<b>Interpretation:</b> ${model.total.interpretation} – ${model.total.interpretationText}`;
-    $("totalExplain").textContent = "Gesamt = Durchschnitt der 4 Bereichsscores (je 25%)";
-
-    model.sections.forEach(sec => {
-      const cfg = CONFIG.sections.find(s => s.id === sec.id);
-      let rows = "";
-      sec.kpis.forEach(k => {
-        rows += buildKpiRow(
-          {name:k.name, explain:k.explain, weight:k.weight, type:k.type},
-          k.value,
-          {cls:k.badgeClass, text:k.badgeText},
-          k.score
-        );
-      });
-      sectionsDiv.appendChild(buildSectionBox(cfg, sec.score, {cls:sec.badgeClass, text:sec.badge}, rows));
-    });
-
-    $("results").style.display = "block";
-    window.__PDF_MODEL__ = model;
-  }
-
-  function calculateAndRender(){
-    const computed = computeKPIs();
-    const model = calculateModelFromComputed(computed);
-    renderFromModel(model);
-  }
-
-  function exportPDF(customTitle, modelOverride){
-    const model = modelOverride || window.__PDF_MODEL__;
-    if(!model){ alert("Bitte zuerst Kennzahlen berechnen."); return; }
-
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit:"mm", format:"a4" });
-
-    const margin = 12;
-    const maxW = 190;
-    const lh = 6;
-
-    function addTitle(text, y){
-      doc.setFontSize(14);
-      doc.text(text, margin, y);
-      doc.setFontSize(11);
-    }
-    function addLines(lines, startY){
-      let y = startY;
-      lines.forEach(line => {
-        if (y > 285) { doc.addPage(); y = 12; }
-        doc.text(line, margin, y);
-        y += lh;
-      });
-      return y;
-    }
-
-    // Seite 1
-    addTitle(customTitle || "Due-Diligence KPI Report", 14);
-    doc.setFontSize(11);
-    let y = 22;
-    y = addLines([
-      `Erstellt am: ${model.generatedAt}`,
-      "",
-      `Gesamtscore: ${model.total.score.toFixed(1)} / 100`,
-      `Ampel: ${model.total.badge}`,
-      `Interpretation: ${model.total.interpretation} – ${model.total.interpretationText}`,
-      ""
-    ], y);
-
-    // Je Bereich eigene Seite
-    model.sections.forEach(sec => {
-      doc.addPage();
-      doc.setFontSize(13);
-      doc.text(`${sec.emoji} ${sec.name} (25%)`, margin, 14);
-      doc.setFontSize(11);
-      doc.text(`Bereichsscore: ${sec.score.toFixed(1)} / 100   |   Ampel: ${sec.badge}`, margin, 22);
-
-      const lines = [];
-      lines.push("");
-      lines.push("KPIs:");
-      sec.kpis.forEach(k => {
-        lines.push(`- ${k.name}: ${k.valueText} | ${k.badgeText} | KPI-Score: ${k.score.toFixed(1)}/100 | Gewicht: ${k.weight}`);
-      });
-
-      const wrapped = doc.splitTextToSize(lines.join("\n"), maxW);
-      doc.setFontSize(10);
-      addLines(wrapped, 32);
-    });
-
-    doc.save(`Due-Diligence_KPI_Report_${new Date().toISOString().slice(0,10)}.pdf`);
-  }
-
-  // ---------- Period storage ----------
-  const STORE_KEY = "ddkpi_periods_v1";
-
-  function getAllPeriods(){
-    try{
-      const raw = localStorage.getItem(STORE_KEY);
-      return raw ? JSON.parse(raw) : [];
-    }catch{ return []; }
-  }
-  function setAllPeriods(list){ localStorage.setItem(STORE_KEY, JSON.stringify(list)); }
-
-  function collectInputs(){
-    return {
-      umsatz: $("umsatz").value || "",
-      wareneinsatz: $("wareneinsatz").value || "",
-      ebitda: $("ebitda").value || "",
-      jahresueberschuss: $("jahresueberschuss").value || "",
-      eigenkapital: $("eigenkapital").value || "",
-      gesamtkapital: $("gesamtkapital").value || "",
-      lagerbestand: $("lagerbestand").value || "",
-      mitarbeiter: $("mitarbeiter").value || "",
-      verkaufsflaeche: $("verkaufsflaeche").value || "",
-      umlaufvermoegen: $("umlaufvermoegen").value || "",
-      kurzfristigeVerbindlichkeiten: $("kurzfristigeVerbindlichkeiten").value || "",
-      operativerCashflow: $("operativerCashflow").value || "",
-      marketingkosten: $("marketingkosten").value || "",
-      bestellungen: $("bestellungen").value || "",
-      shopbesucher: $("shopbesucher").value || "",
-      retouren: $("retouren").value || ""
-    };
-  }
-
-  function applyInputs(obj){
-    Object.entries(obj).forEach(([k,v]) => {
-      const el = $(k);
-      if(el) el.value = v ?? "";
-    });
-  }
-
-  function saveCurrentAsPeriod(){
-    const type = $("periodType").value;
-    const label = ($("periodLabel").value || "").trim();
-    if(!label){
-      alert("Bitte eine Zeitraum-Bezeichnung angeben (z. B. 2026-01 oder 2026-Q1 oder 2026).");
-      return;
-    }
-
-    const item = {
-      id: crypto?.randomUUID ? crypto.randomUUID() : String(Date.now()) + "_" + Math.random().toString(16).slice(2),
-      type, label,
-      savedAt: new Date().toISOString(),
-      inputs: collectInputs()
-    };
-
-    const list = getAllPeriods();
-    const existingIdx = list.findIndex(x => x.type === type && x.label === label);
-    if(existingIdx >= 0) list.splice(existingIdx, 1, item);
-    else list.unshift(item);
-
-    setAllPeriods(list);
-    alert(`Gespeichert: ${type} – ${label}`);
-    renderPeriodList();
-    renderCompareSelects();
-  }
-
-  function renderPeriodList(){
-    const list = getAllPeriods().sort((a,b) => (b.savedAt || "").localeCompare(a.savedAt || ""));
-    const host = $("periodList");
-    host.innerHTML = "";
-
-    if(list.length === 0){
-      host.innerHTML = `<div class="note">Noch keine Zeiträume gespeichert.</div>`;
-      return;
-    }
-
-    list.forEach(item => {
-      const div = document.createElement("div");
-      div.className = "item";
-      const when = item.savedAt ? new Date(item.savedAt).toLocaleString("de-DE") : "-";
-
-      div.innerHTML = `
-        <div>
-          <div class="itemTitle">${item.type}: ${item.label}</div>
-          <div class="itemMeta">Gespeichert am: ${when}</div>
-        </div>
-        <div class="itemBtns">
-          <button class="btn secondary" data-action="load" data-id="${item.id}">Laden</button>
-          <button class="btn secondary" data-action="pdf" data-id="${item.id}">PDF</button>
-          <button class="btn secondary" data-action="delete" data-id="${item.id}">Löschen</button>
-        </div>
-      `;
-      host.appendChild(div);
-    });
-
-    host.querySelectorAll("button[data-action]").forEach(btn => {
-      btn.addEventListener("click", () => {
-        const id = btn.dataset.id;
-        const action = btn.dataset.action;
-        const all = getAllPeriods();
-        const it = all.find(x => x.id === id);
-        if(!it) return;
-
-        if(action === "load"){
-          applyInputs(it.inputs || {});
-          setTab("calcTab");
-          $("results").style.display = "none";
-          window.__PDF_MODEL__ = null;
-          alert(`Geladen: ${it.type} – ${it.label}\nJetzt auf "Kennzahlen berechnen" klicken.`);
-        }
-
-        if(action === "delete"){
-          const next = all.filter(x => x.id !== id);
-          setAllPeriods(next);
-          renderPeriodList();
-          renderCompareSelects();
-        }
-
-        if(action === "pdf"){
-          applyInputs(it.inputs || {});
-          try{
-            const comp = computeKPIsFromInputsObject(it.inputs || {});
-            const model = calculateModelFromComputed(comp);
-            exportPDF(`Due-Diligence KPI Report – ${it.type}: ${it.label}`, model);
-          }catch(e){
-            alert(e.message || "PDF konnte nicht erstellt werden.");
-          }
-        }
-      });
-    });
-  }
-
-  // ---------- Vergleich ----------
-  function renderCompareSelects(){
-    const list = getAllPeriods().sort((a,b) => (b.savedAt || "").localeCompare(a.savedAt || ""));
-    const aSel = $("compareA");
-    const bSel = $("compareB");
-
-    const buildOptions = () => {
-      if(list.length === 0) return `<option value="">(keine Zeiträume gespeichert)</option>`;
-      return list.map(it => {
-        const label = `${it.type}: ${it.label}`;
-        return `<option value="${it.id}">${label}</option>`;
-      }).join("");
-    };
-
-    const opts = buildOptions();
-    aSel.innerHTML = opts;
-    bSel.innerHTML = opts;
-
-    // Preselect: A = 2. Eintrag (älter), B = 1. Eintrag (neu) wenn möglich
-    if(list.length >= 2){
-      aSel.value = list[1].id;
-      bSel.value = list[0].id;
-    }
-  }
-
-  function compareModels(modelA, modelB){
-    const deltaTotal = modelB.total.score - modelA.total.score;
-    return { deltaTotal };
-  }
-
-  function renderCompare(){
-    const all = getAllPeriods();
-    const idA = $("compareA").value;
-    const idB = $("compareB").value;
-
-    const itA = all.find(x => x.id === idA);
-    const itB = all.find(x => x.id === idB);
-
-    if(!itA || !itB){
-      alert("Bitte Zeitraum A und B auswählen (oder erst Zeiträume speichern).");
-      return;
-    }
-
-    const computedA = computeKPIsFromInputsObject(itA.inputs || {});
-    const computedB = computeKPIsFromInputsObject(itB.inputs || {});
-
-    const modelA = calculateModelFromComputed(computedA);
-    const modelB = calculateModelFromComputed(computedB);
-
-    const deltaTotal = modelB.total.score - modelA.total.score;
-    const deltaCls = deltaClass(deltaTotal);
-
-    $("compareTitle").textContent = `Gesamtvergleich: A = ${itA.type} ${itA.label}  |  B = ${itB.type} ${itB.label}`;
-    $("compareTotalLine").textContent = `A ${modelA.total.score.toFixed(1)} / 100  vs  B ${modelB.total.score.toFixed(1)} / 100`;
-    $("compareDeltaLine").innerHTML = `Δ (B − A): <span class="${deltaCls}">${deltaTotal >= 0 ? "+" : ""}${deltaTotal.toFixed(1)}</span>`;
-
-    const badgeB = totalBadgeFromScore(modelB.total.score);
-    $("compareTotalBadge").className = `badge ${badgeB.cls}`;
-    $("compareTotalBadge").textContent = `${badgeB.text}`;
-
-    // sections
-    const host = $("compareSections");
-    host.innerHTML = "";
-
-    modelA.sections.forEach(secA => {
-      const secB = modelB.sections.find(s => s.id === secA.id);
-      const cfg = CONFIG.sections.find(s => s.id === secA.id);
-      const d = (secB.score - secA.score);
-      const dCls = deltaClass(d);
-
-      let rows = "";
-      secA.kpis.forEach(kA => {
-        const kB = secB.kpis.find(x => x.id === kA.id);
-        const dv = (kB.value - kA.value);
-
-        // delta formatting by type
-        let dvText = "";
-        if(kA.type === "pct") dvText = `${dv >= 0 ? "+" : ""}${fmt(dv)} %`;
-        else if(kA.type === "eur0") dvText = `${dv >= 0 ? "+" : ""}${fmtEUR(dv)} €`;
-        else dvText = `${dv >= 0 ? "+" : ""}${fmt(dv,2)}`;
-
-        const valLine = `${kA.valueText} → ${kB.valueText}`;
-        const dvCls = deltaClass(dv);
-
-        rows += `
-          <div class="kpiRow">
-            <div>
-              <div class="kpiName">- ${kA.name}</div>
-              <div class="kpiExplain">${kA.explain}</div>
-              <div class="kpiMeta">A: ${kA.badgeText} | B: ${kB.badgeText} • Δ: <span class="${dvCls}">${dvText}</span></div>
-            </div>
-            <div class="kpiValue">${valLine}</div>
-            <span class="badge ${totalBadgeFromScore(kB.score).cls}">B KPI-Score: ${kB.score.toFixed(1)}</span>
-          </div>
-        `;
-      });
-
-      const box = document.createElement("div");
-      box.className = "sectionBox";
-      box.innerHTML = `
-        <div class="sectionHead">
-          <div>
-            <div class="sectionTitleRow">
-              <span class="dot ${cfg.dotClass}"></span>
-              <div>
-                <div class="sectionName">${cfg.titleEmoji} ${cfg.name} <span class="small">(25%)</span></div>
-                <div class="sectionWeight">
-                  A: <b>${secA.score.toFixed(1)}</b> • B: <b>${secB.score.toFixed(1)}</b>
-                  • Δ: <span class="${dCls}">${d >= 0 ? "+" : ""}${d.toFixed(1)}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <span class="badge ${secB.badgeClass}">B: ${secB.badge}</span>
-        </div>
-        <div class="kpiList">${rows}</div>
-      `;
-      host.appendChild(box);
-    });
-
-    $("compareOut").style.display = "block";
-
-    // store compare models for PDF
-    window.__COMPARE__ = { itA, itB, modelA, modelB };
-  }
-
-  function exportComparePDF(){
-    const data = window.__COMPARE__;
-    if(!data){ alert("Bitte zuerst einen Vergleich berechnen."); return; }
-
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ unit:"mm", format:"a4" });
-
-    const margin = 12;
-    const maxW = 190;
-    const lh = 6;
-
-    const title = `KPI Vergleich – A: ${data.itA.type} ${data.itA.label}  vs  B: ${data.itB.type} ${data.itB.label}`;
-    doc.setFontSize(14);
-    doc.text(title, margin, 14);
-    doc.setFontSize(11);
-
-    const deltaTotal = data.modelB.total.score - data.modelA.total.score;
-    const lines = [
-      `Erstellt am: ${new Date().toLocaleString("de-DE")}`,
-      "",
-      `Gesamtscore A: ${data.modelA.total.score.toFixed(1)} / 100 (${data.modelA.total.badge})`,
-      `Gesamtscore B: ${data.modelB.total.score.toFixed(1)} / 100 (${data.modelB.total.badge})`,
-      `Δ (B − A): ${deltaTotal >= 0 ? "+" : ""}${deltaTotal.toFixed(1)}`,
-      "",
-      "Bereiche:"
-    ];
-
-    data.modelA.sections.forEach(secA => {
-      const secB = data.modelB.sections.find(s => s.id === secA.id);
-      const d = secB.score - secA.score;
-      lines.push(`- ${secA.name}: A ${secA.score.toFixed(1)} → B ${secB.score.toFixed(1)} (Δ ${d>=0?"+":""}${d.toFixed(1)})`);
-    });
-
-    const wrapped = doc.splitTextToSize(lines.join("\n"), maxW);
-    let y = 22;
-    wrapped.forEach(line => {
-      if(y > 285){ doc.addPage(); y = 12; }
-      doc.text(line, margin, y);
-      y += lh;
-    });
-
-    // Detail pages per section
-    data.modelA.sections.forEach(secA => {
-      const secB = data.modelB.sections.find(s => s.id === secA.id);
-      doc.addPage();
-      doc.setFontSize(13);
-      doc.text(`${secA.emoji} ${secA.name}`, margin, 14);
-      doc.setFontSize(11);
-      doc.text(`A: ${secA.score.toFixed(1)} / 100   |   B: ${secB.score.toFixed(1)} / 100   |   Δ: ${(secB.score-secA.score)>=0?"+":""}${(secB.score-secA.score).toFixed(1)}`, margin, 22);
-
-      const l = [];
-      l.push("");
-      l.push("KPIs (A → B):");
-      secA.kpis.forEach(kA => {
-        const kB = secB.kpis.find(x => x.id === kA.id);
-        const dv = kB.value - kA.value;
-
-        let dvText = "";
-        if(kA.type === "pct") dvText = `${dv >= 0 ? "+" : ""}${fmt(dv)} %`;
-        else if(kA.type === "eur0") dvText = `${dv >= 0 ? "+" : ""}${fmtEUR(dv)} €`;
-        else dvText = `${dv >= 0 ? "+" : ""}${fmt(dv,2)}`;
-
-        l.push(`- ${kA.name}: ${kA.valueText} → ${kB.valueText} (Δ ${dvText}) | A:${kA.badgeText} B:${kB.badgeText}`);
-      });
-
-      const ww = doc.splitTextToSize(l.join("\n"), maxW);
-      let yy = 32;
-      doc.setFontSize(10);
-      ww.forEach(line => {
-        if(yy > 285){ doc.addPage(); yy = 12; }
-        doc.text(line, margin, yy);
-        yy += lh;
-      });
-    });
-
-    doc.save(`KPI_Vergleich_${new Date().toISOString().slice(0,10)}.pdf`);
-  }
-
-  // ---------- Buttons / Events ----------
-  $("calc").addEventListener("click", () => { try { calculateAndRender(); } catch(e){ alert(e.message || "Fehler bei der Berechnung."); } });
-  $("pdf").addEventListener("click", () => { try { exportPDF(); } catch{ alert("PDF-Export fehlgeschlagen."); } });
-
-  $("reset").addEventListener("click", () => {
-    document.querySelectorAll("input").forEach(i => i.value = "");
-    $("periodLabel").value = "";
-    $("results").style.display = "none";
-    window.__PDF_MODEL__ = null;
+    ctx.stroke();
   });
 
-  $("fillDemo").addEventListener("click", () => {
-    $("umsatz").value = "1.250.000";
-    $("wareneinsatz").value = "720.000";
-    $("ebitda").value = "140.000";
-    $("jahresueberschuss").value = "70.000";
-    $("eigenkapital").value = "280.000";
-    $("gesamtkapital").value = "900.000";
-    $("lagerbestand").value = "180.000";
-    $("mitarbeiter").value = "8";
-    $("verkaufsflaeche").value = "250";
-    $("umlaufvermoegen").value = "320.000";
-    $("kurzfristigeVerbindlichkeiten").value = "210.000";
-    $("operativerCashflow").value = "95.000";
-    $("marketingkosten").value = "85.000";
-    $("bestellungen").value = "12.500";
-    $("shopbesucher").value = "520.000";
-    $("retouren").value = "55.000";
-  });
+  // Labels
+  ctx.fillStyle="#666"; ctx.font="12px system-ui";
+  data.forEach((d,i)=>ctx.fillText(d.label,x(i)-15,pad+H+20));
 
-  $("savePeriod").addEventListener("click", saveCurrentAsPeriod);
-  $("refreshList").addEventListener("click", renderPeriodList);
-  $("goOverview").addEventListener("click", () => { setTab("overviewTab"); renderPeriodList(); });
+  renderWarnings(data);
+}
 
-  $("refreshCompare").addEventListener("click", renderCompareSelects);
-  $("runCompare").addEventListener("click", () => { try { renderCompare(); } catch(e){ alert(e.message || "Vergleich fehlgeschlagen."); } });
-  $("comparePDF").addEventListener("click", () => { try { exportComparePDF(); } catch(e){ alert(e.message || "Vergleich-PDF fehlgeschlagen."); } });
+/* ---------- Warnungen ---------- */
+function renderWarnings(data){
+  const w = $("warnings");
+  w.innerHTML="";
+  if(data.length<3) return;
 
-  // Initial
-  renderPeriodList();
-  renderCompareSelects();
+  const last3 = data.slice(-3).map(x=>x.scores.total);
+  if(last3[2]<last3[1] && last3[1]<last3[0]){
+    w.innerHTML += "<span>⚠️ 3 Zeiträume in Folge schlechter (Gesamt)</span>";
+  }
+  const drop = data[data.length-2].scores.total - data[data.length-1].scores.total;
+  if(drop>10){
+    w.innerHTML += "<span>⚠️ Starker Einbruch (>10 Punkte)</span>";
+  }
+}
+
+/* ---------- Vergleich ---------- */
+function renderCompareSelects(){
+  const all = JSON.parse(localStorage.getItem(STORE_KEY)||"[]");
+  $("cmpA").innerHTML = all.map((x,i)=>`<option value="${i}">${x.type} ${x.label}</option>`).join("");
+  $("cmpB").innerHTML = $("cmpA").innerHTML;
+  if(all.length>1){$("cmpA").value=all.length-2; $("cmpB").value=all.length-1;}
+}
+function runCompare(){
+  const all = JSON.parse(localStorage.getItem(STORE_KEY)||"[]");
+  const A = all[$("cmpA").value];
+  const B = all[$("cmpB").value];
+  if(!A||!B) return;
+  const deltas = Object.keys(A.scores).map(k=>({k, d:B.scores[k]-A.scores[k]}))
+    .sort((a,b)=>b.d-a.d);
+  $("compareOut").innerHTML = `
+    <h3>Top-Treiber</h3>
+    <b>Verbesserungen</b>
+    <ul>${deltas.slice(0,3).map(x=>`<li>${x.k}: +${x.d.toFixed(1)}</li>`).join("")}</ul>
+    <b>Verschlechterungen</b>
+    <ul>${deltas.slice(-3).map(x=>`<li>${x.k}: ${x.d.toFixed(1)}</li>`).join("")}</ul>
+  `;
+}
+
+/* ---------- Backup ---------- */
+function exportBackup(){
+  const blob = new Blob([localStorage.getItem(STORE_KEY)||"[]"],{type:"application/json"});
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="ddkpi_backup.json";
+  a.click();
+}
+function importBackup(file){
+  const r=new FileReader();
+  r.onload=()=>{localStorage.setItem(STORE_KEY,r.result); alert("Import OK");};
+  r.readAsText(file);
+}
+
+/* ---------- Events ---------- */
+document.querySelectorAll(".tabbtn").forEach(b=>b.onclick=()=>{
+  document.querySelectorAll(".tabbtn").forEach(x=>x.classList.remove("active"));
+  document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");
+  $(b.dataset.tab).classList.add("active");
+});
+$("drawTrend").onclick=drawTrend;
+$("runCompare").onclick=runCompare;
+$("exportBackup").onclick=exportBackup;
+$("importBackup").onclick=()=>$("importFile").click();
+$("importFile").onchange=e=>importBackup(e.target.files[0]);
+
+renderCompareSelects();
+drawTrend();
 </script>
 </body>
 </html>
