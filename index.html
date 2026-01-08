@@ -8,48 +8,112 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
-    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
-    body { margin:0; background:#f6f7fb; color:#111; }
-    .wrap { max-width:1150px; margin:0 auto; padding:18px; }
-    .card { background:#fff; border-radius:18px; box-shadow:0 6px 18px rgba(0,0,0,.06); padding:16px; }
-    h1 { margin:0; font-size:20px; }
-    .sub { margin:6px 0 0; color:#555; font-size:13px; }
-    h2 { margin:18px 0 8px; font-size:15px; }
-    .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    :root{
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      --bg:#f6f7fb;
+      --card:#fff;
+      --text:#111;
+      --muted:#666;
+      --border:#e9ecf5;
+      --shadow:0 6px 18px rgba(0,0,0,.06);
+
+      --green-bg:#f0fff3; --green-bd:#d9f5df; --green-tx:#1c7c2f;
+      --yellow-bg:#fff7e6; --yellow-bd:#ffe2a8; --yellow-tx:#8a5a00;
+      --red-bg:#fff0f0; --red-bd:#ffd6d6; --red-tx:#b00020;
+
+      --rent:#2f6fff;
+      --eff:#f2b400;
+      --liq:#2bb673;
+      --ecom:#8a5cf6;
+    }
+
+    body{ margin:0; background:var(--bg); color:var(--text); }
+    .wrap{ max-width:1150px; margin:0 auto; padding:18px; }
+    .card{ background:var(--card); border-radius:18px; box-shadow:var(--shadow); padding:16px; }
+    h1{ margin:0; font-size:20px; }
+    .sub{ margin:6px 0 0; color:#555; font-size:13px; }
+
+    h2{ margin:18px 0 8px; font-size:15px; }
+    .grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     @media (max-width:900px){ .grid{ grid-template-columns:1fr; } }
 
-    label { display:block; font-size:12px; color:#666; margin:10px 0 6px; }
-    input {
+    label{ display:block; font-size:12px; color:var(--muted); margin:10px 0 6px; }
+    input{
       width:100%; padding:10px 12px; border-radius:12px; border:1px solid #d9dbe6;
       font:inherit; box-sizing:border-box; background:#fff; color:#111;
     }
 
-    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
-    button {
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
+    .btn{
       padding:10px 12px; border-radius:12px; border:1px solid #111;
       background:#111; color:#fff; font:inherit; cursor:pointer;
     }
-    button.secondary { background:#fff; color:#111; border:1px solid #d9dbe6; }
+    .btn.secondary{ background:#fff; color:#111; border:1px solid #d9dbe6; }
+    .pill{ padding:6px 10px; border-radius:999px; font-size:12px; border:1px solid #e4e6f1; background:#f1f2f7; white-space:nowrap; }
+    .hr{ height:1px; background:var(--border); border:0; margin:14px 0; }
+    .note{ font-size:12px; color:var(--muted); }
 
-    .hr { height:1px; background:#eef0f6; border:0; margin:14px 0; }
-    .note { font-size:12px; color:#666; }
+    /* Badges / Ampel */
+    .badge{
+      padding:6px 10px; border-radius:999px; font-size:12px; border:1px solid #e4e6f1;
+      background:#f1f2f7; white-space:nowrap; font-weight:700; display:inline-flex; align-items:center; gap:6px;
+    }
+    .green{ background:var(--green-bg); border-color:var(--green-bd); color:var(--green-tx); }
+    .yellow{ background:var(--yellow-bg); border-color:var(--yellow-bd); color:var(--yellow-tx); }
+    .red{ background:var(--red-bg); border-color:var(--red-bd); color:var(--red-tx); }
 
-    .pill { padding:6px 10px; border-radius:999px; font-size:12px; border:1px solid #e4e6f1; background:#f1f2f7; white-space:nowrap; }
-    .badge { padding:6px 10px; border-radius:999px; font-size:12px; border:1px solid #e4e6f1; background:#f1f2f7; white-space:nowrap; font-weight:650; }
-    .red { background:#fff0f0; border-color:#ffd6d6; color:#b00020; }
-    .yellow { background:#fff7e6; border-color:#ffe2a8; color:#8a5a00; }
-    .green { background:#f0fff3; border-color:#d9f5df; color:#1c7c2f; }
+    /* Result layout */
+    .scoreCard{
+      border:1px solid var(--border); border-radius:16px; padding:12px; background:#fafbff;
+      display:flex; justify-content:space-between; gap:12px; align-items:flex-start;
+    }
+    .big{ font-size:22px; font-weight:900; }
+    .muted{ color:var(--muted); font-size:12px; }
+    .small{ font-size:12px; color:#555; }
 
-    .sectionCard { border:1px solid #eef0f6; border-radius:16px; padding:12px; background:#fff; }
-    .kpiGrid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:10px; }
-    @media (max-width:1000px){ .kpiGrid{ grid-template-columns:1fr; } }
+    .sectionsGrid{
+      display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;
+    }
+    @media (max-width:1000px){ .sectionsGrid{ grid-template-columns:1fr; } }
 
-    .kpi { border:1px solid #eef0f6; border-radius:16px; padding:12px; background:#fff; display:flex; gap:12px; justify-content:space-between; align-items:flex-start; }
-    .kpi b { display:block; margin-bottom:2px; }
-    .muted { color:#666; font-size:12px; }
-    .big { font-size:20px; font-weight:800; }
-    .small { font-size:12px; color:#555; }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    .sectionBox{
+      border:1px solid var(--border); border-radius:16px; background:#fff; overflow:hidden;
+    }
+    .sectionHead{
+      padding:12px;
+      display:flex; justify-content:space-between; align-items:flex-start; gap:12px;
+      border-bottom:1px solid var(--border);
+    }
+    .sectionTitleRow{ display:flex; align-items:center; gap:10px; }
+    .dot{
+      width:10px; height:10px; border-radius:999px; background:#999; flex:0 0 auto;
+      box-shadow:0 0 0 6px rgba(0,0,0,0.03);
+    }
+    .dot.rent{ background:var(--rent); }
+    .dot.eff{ background:var(--eff); }
+    .dot.liq{ background:var(--liq); }
+    .dot.ecom{ background:var(--ecom); }
+
+    .sectionName{ font-weight:900; }
+    .sectionWeight{ color:var(--muted); font-size:12px; margin-top:2px; }
+
+    .kpiList{ padding:10px 12px 12px; display:flex; flex-direction:column; gap:10px; }
+    .kpiRow{
+      display:grid;
+      grid-template-columns: 1fr auto auto;
+      gap:10px;
+      align-items:center;
+      padding:10px;
+      border:1px solid var(--border);
+      border-radius:14px;
+      background:#fff;
+    }
+    .kpiName{ font-weight:700; }
+    .kpiExplain{ font-size:12px; color:var(--muted); margin-top:2px; }
+    .kpiValue{ font-weight:900; }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+
+    .kpiMeta{ font-size:12px; color:#555; }
   </style>
 </head>
 
@@ -59,12 +123,12 @@
     <div class="row">
       <div>
         <h1>Due-Diligence KPI App</h1>
-        <div class="sub">Werte eingeben → Kennzahlen + Ampel + Score (4 Bereiche je 25%)</div>
+        <div class="sub">Werte eingeben → KPIs + Ampel + Bereichsscore (4 Bereiche je 25%) + PDF</div>
       </div>
       <div class="row">
-        <span class="pill">v1</span>
-        <button class="secondary" id="fillDemo">Demo-Werte</button>
-        <button class="secondary" id="reset">Reset</button>
+        <span class="pill">v2</span>
+        <button class="btn secondary" id="fillDemo">Demo-Werte</button>
+        <button class="btn secondary" id="reset">Reset</button>
       </div>
     </div>
 
@@ -73,14 +137,19 @@
       <div>
         <label>Umsatz (€)</label>
         <input id="umsatz" placeholder="z. B. 1.250.000" inputmode="decimal">
+
         <label>Wareneinsatz (€)</label>
         <input id="wareneinsatz" placeholder="z. B. 720.000" inputmode="decimal">
+
         <label>EBITDA (€)</label>
         <input id="ebitda" placeholder="z. B. 140.000" inputmode="decimal">
+
         <label>Jahresüberschuss (€)</label>
         <input id="jahresueberschuss" placeholder="z. B. 70.000" inputmode="decimal">
+
         <label>Eigenkapital (€)</label>
         <input id="eigenkapital" placeholder="z. B. 280.000" inputmode="decimal">
+
         <label>Gesamtkapital (€)</label>
         <input id="gesamtkapital" placeholder="z. B. 900.000" inputmode="decimal">
       </div>
@@ -88,14 +157,19 @@
       <div>
         <label>Ø Lagerbestand (€)</label>
         <input id="lagerbestand" placeholder="z. B. 180.000" inputmode="decimal">
+
         <label>Mitarbeiter (FTE)</label>
         <input id="mitarbeiter" placeholder="z. B. 8" inputmode="decimal">
+
         <label>Verkaufsfläche (m²)</label>
         <input id="verkaufsflaeche" placeholder="z. B. 250" inputmode="decimal">
+
         <label>Umlaufvermögen (€)</label>
         <input id="umlaufvermoegen" placeholder="z. B. 320.000" inputmode="decimal">
+
         <label>Kurzfr. Verbindlichkeiten (€)</label>
         <input id="kurzfristigeVerbindlichkeiten" placeholder="z. B. 210.000" inputmode="decimal">
+
         <label>Operativer Cashflow (€)</label>
         <input id="operativerCashflow" placeholder="z. B. 95.000" inputmode="decimal">
       </div>
@@ -106,12 +180,15 @@
       <div>
         <label>Marketingkosten (€)</label>
         <input id="marketingkosten" placeholder="z. B. 85.000" inputmode="decimal">
+
         <label>Bestellungen (Anzahl)</label>
         <input id="bestellungen" placeholder="z. B. 12.500" inputmode="decimal">
       </div>
+
       <div>
         <label>Shopbesucher (Anzahl)</label>
         <input id="shopbesucher" placeholder="z. B. 520.000" inputmode="decimal">
+
         <label>Retouren (€)</label>
         <input id="retouren" placeholder="z. B. 55.000" inputmode="decimal">
       </div>
@@ -120,41 +197,39 @@
     <div class="hr"></div>
 
     <div class="row">
-      <button id="calc">Kennzahlen berechnen</button>
+      <button class="btn" id="calc">Kennzahlen berechnen</button>
       <div class="row">
-        <button class="secondary" id="pdf">PDF exportieren</button>
+        <button class="btn secondary" id="pdf">PDF exportieren</button>
       </div>
     </div>
 
     <div id="results" style="display:none;">
       <div class="hr"></div>
 
-      <div class="sectionCard">
-        <div class="row">
-          <div>
-            <div class="muted">Gesamtscore (4 Bereiche je 25%)</div>
-            <div class="big" id="totalScore">—</div>
-            <div class="small" id="totalExplain">—</div>
-          </div>
-          <span class="badge" id="totalBadge">—</span>
+      <div class="scoreCard">
+        <div>
+          <div class="muted">Gesamtscore (4 Bereiche je 25%)</div>
+          <div class="big" id="totalScoreText">—</div>
+          <div class="small" id="totalInterpretation">—</div>
+          <div class="muted" id="totalExplain">—</div>
         </div>
+        <span class="badge" id="totalBadge">—</span>
       </div>
 
-      <h2>Ergebnisse (Ampel + Bereichsscores)</h2>
-      <div class="kpiGrid" id="sections"></div>
+      <div class="sectionsGrid" id="sections"></div>
 
       <div class="note" style="margin-top:10px;">
-        Benchmarks & Gewichte sind im Code zentral definiert (oben im Script unter <span class="mono">CONFIG</span>).
-        Wenn du mir deine echten Benchmark-Grenzen gibst, passe ich sie dir 1:1 an.
+        Benchmarks & KPI-Gewichte sind im Code zentral in <span class="mono">CONFIG</span> definiert und können jederzeit angepasst werden.
       </div>
     </div>
+
   </div>
 </div>
 
 <script>
   const $ = (id) => document.getElementById(id);
 
-  // ========= Helpers =========
+  // Eingaben lesen (erlaubt 1.234.567,89 oder 1234567.89)
   function num(id){
     const raw = ($(id).value || "").toString().trim();
     if(!raw) return 0;
@@ -172,26 +247,27 @@
     return n.toLocaleString("de-DE", {maximumFractionDigits:digits, minimumFractionDigits:digits});
   }
 
-  // ========= Ampel & Scoring =========
-  // Benchmarks: red / yellow / green (Grenzen)
-  // type:
-  //  - "higherBetter": höher = besser
-  //  - "lowerBetter": niedriger = besser
+  function formatValue(val, type){
+    if(type === "pct") return `${fmt(val)} %`;
+    if(type === "eur0") return `${fmtEUR(val)} €`;
+    // num
+    return `${fmt(val, 2)}`;
+  }
+
+  // Ampel (rot/gelb/grün) aus Benchmarks
   function badgeFor(value, bm){
     if (bm.type === "higherBetter"){
-      if (value >= bm.green) return {cls:"green", text:"Grün"};
-      if (value >= bm.yellow) return {cls:"yellow", text:"Gelb"};
-      return {cls:"red", text:"Rot"};
-    } else { // lowerBetter
-      if (value <= bm.green) return {cls:"green", text:"Grün"};
-      if (value <= bm.yellow) return {cls:"yellow", text:"Gelb"};
-      return {cls:"red", text:"Rot"};
+      if (value >= bm.green) return {cls:"green", text:"🟢 Grün"};
+      if (value >= bm.yellow) return {cls:"yellow", text:"🟡 Gelb"};
+      return {cls:"red", text:"🔴 Rot"};
+    } else {
+      if (value <= bm.green) return {cls:"green", text:"🟢 Grün"};
+      if (value <= bm.yellow) return {cls:"yellow", text:"🟡 Gelb"};
+      return {cls:"red", text:"🔴 Rot"};
     }
   }
 
-  // Score 0..100 aus Benchmark (linear):
-  // higherBetter: <= red => 0, >= green => 100, dazwischen linear
-  // lowerBetter:  >= red => 0, <= green => 100, dazwischen linear
+  // Score 0..100 (linear)
   function scoreFromBenchmark(value, bm){
     if (!Number.isFinite(value)) return 0;
 
@@ -206,121 +282,132 @@
     }
   }
 
-  function totalBadgeFromScore(s){
-    // Gesamtscore Ampel: <60 rot, 60-75 gelb, >=75 grün
-    if (s >= 75) return {cls:"green", text:"Grün"};
-    if (s >= 60) return {cls:"yellow", text:"Gelb"};
-    return {cls:"red", text:"Rot"};
+  // Gesamtscore-Interpretation
+  function interpretTotal(score){
+    if (score >= 75) return {label:"sehr gut", hint:"Sehr gute Gesamtperformance im Benchmark-Vergleich."};
+    if (score >= 60) return {label:"solide", hint:"Solide – es gibt Optimierungspotenzial in einzelnen Bereichen."};
+    return {label:"kritisch", hint:"Kritisch – mehrere Benchmarks werden deutlich verfehlt."};
   }
 
-  // ========= CONFIG (Benchmarks + Gewichte) =========
-  // 4 Bereiche = je 25% am Gesamtscore
-  // Innerhalb Bereich: Kennzahlen gewichtet (Summe muss NICHT 1 sein – wir normieren automatisch)
+  function totalBadgeFromScore(s){
+    if (s >= 75) return {cls:"green", text:"🟢 Sehr gut"};
+    if (s >= 60) return {cls:"yellow", text:"🟡 Solide"};
+    return {cls:"red", text:"🔴 Kritisch"};
+  }
+
+  // ========= CONFIG: Bereiche (je 25%) + KPI-Gewichte + Benchmarks =========
   const CONFIG = {
     sections: [
       {
-        id: "rent",
-        name: "Rentabilität (25%)",
-        weightTotal: 0.25,
-        kpis: [
-          { id:"rohertrag", name:"Rohertrag", unit:"%", type:"pct",
-            benchmark:{type:"higherBetter", red:15, yellow:20, green:30},
-            weight: 0.30,
-            explain:"(Umsatz − Wareneinsatz) / Umsatz"
+        id:"rent",
+        dotClass:"rent",
+        titleEmoji:"🟦",
+        name:"Rentabilität",
+        weightTotal:0.25,
+        kpis:[
+          { id:"rohertrag", name:"Rohertrag", type:"pct",
+            explain:"(Umsatz − Wareneinsatz) / Umsatz",
+            weight:0.30,
+            benchmark:{type:"higherBetter", red:15, yellow:20, green:30}
           },
-          { id:"ebitdaMarge", name:"EBITDA-Marge", unit:"%", type:"pct",
-            benchmark:{type:"higherBetter", red:3, yellow:5, green:12},
-            weight: 0.30,
-            explain:"EBITDA / Umsatz"
+          { id:"ebitdaMarge", name:"EBITDA-Marge", type:"pct",
+            explain:"EBITDA / Umsatz",
+            weight:0.30,
+            benchmark:{type:"higherBetter", red:3, yellow:5, green:12}
           },
-          { id:"nettoMarge", name:"Netto-Marge", unit:"%", type:"pct",
-            benchmark:{type:"higherBetter", red:1, yellow:2, green:6},
-            weight: 0.20,
-            explain:"Jahresüberschuss / Umsatz"
+          { id:"nettoMarge", name:"Netto-Marge", type:"pct",
+            explain:"Jahresüberschuss / Umsatz",
+            weight:0.20,
+            benchmark:{type:"higherBetter", red:1, yellow:2, green:6}
           },
-          { id:"roi", name:"ROI", unit:"%", type:"pct",
-            benchmark:{type:"higherBetter", red:5, yellow:10, green:18},
-            weight: 0.20,
-            explain:"Jahresüberschuss / Eigenkapital"
+          { id:"roi", name:"ROI", type:"pct",
+            explain:"Jahresüberschuss / Eigenkapital",
+            weight:0.20,
+            benchmark:{type:"higherBetter", red:5, yellow:10, green:18}
           }
         ]
       },
       {
-        id: "eff",
-        name: "Effizienz (25%)",
-        weightTotal: 0.25,
-        kpis: [
-          { id:"lagerUmschlag", name:"Lagerumschlag", unit:"x", type:"num",
-            benchmark:{type:"higherBetter", red:1.5, yellow:2.0, green:4.0},
-            weight: 0.35,
-            explain:"Wareneinsatz / Ø Lagerbestand"
+        id:"eff",
+        dotClass:"eff",
+        titleEmoji:"🟨",
+        name:"Effizienz",
+        weightTotal:0.25,
+        kpis:[
+          { id:"lagerUmschlag", name:"Lagerumschlag", type:"num",
+            explain:"Wareneinsatz / Ø Lagerbestand",
+            weight:0.35,
+            benchmark:{type:"higherBetter", red:1.5, yellow:2.0, green:4.0}
           },
-          { id:"umsatzProMA", name:"Umsatz / MA", unit:"€", type:"eur0",
-            benchmark:{type:"higherBetter", red:120000, yellow:150000, green:230000},
-            weight: 0.35,
-            explain:"Umsatz / FTE"
+          { id:"umsatzProMA", name:"Umsatz / MA", type:"eur0",
+            explain:"Umsatz / FTE",
+            weight:0.35,
+            benchmark:{type:"higherBetter", red:120000, yellow:150000, green:230000}
           },
-          { id:"umsatzProQM", name:"Umsatz / m²", unit:"€", type:"eur0",
-            benchmark:{type:"higherBetter", red:2500, yellow:3000, green:5500},
-            weight: 0.30,
-            explain:"Umsatz / Verkaufsfläche"
+          { id:"umsatzProQM", name:"Umsatz / m²", type:"eur0",
+            explain:"Umsatz / Verkaufsfläche",
+            weight:0.30,
+            benchmark:{type:"higherBetter", red:2500, yellow:3000, green:5500}
           }
         ]
       },
       {
-        id: "liq",
-        name: "Liquidität (25%)",
-        weightTotal: 0.25,
-        kpis: [
-          { id:"ekQuote", name:"EK-Quote", unit:"%", type:"pct",
-            benchmark:{type:"higherBetter", red:8, yellow:12, green:25},
-            weight: 0.35,
-            explain:"Eigenkapital / Gesamtkapital"
+        id:"liq",
+        dotClass:"liq",
+        titleEmoji:"🟩",
+        name:"Liquidität",
+        weightTotal:0.25,
+        kpis:[
+          { id:"ekQuote", name:"Eigenkapitalquote", type:"pct",
+            explain:"Eigenkapital / Gesamtkapital",
+            weight:0.35,
+            benchmark:{type:"higherBetter", red:8, yellow:12, green:25}
           },
-          { id:"workingCapital", name:"Working Capital", unit:"€", type:"eur0",
-            benchmark:{type:"higherBetter", red:0, yellow:1, green:1}, // Platzhalter, wird dynamisch ersetzt
-            weight: 0.35,
-            explain:"Umlaufvermögen − kurzfr. Verbindlichkeiten"
+          { id:"workingCapital", name:"Working Capital", type:"eur0",
+            explain:"Umlaufvermögen − kurzfr. Verbindlichkeiten",
+            weight:0.35,
+            benchmark:{type:"higherBetter", red:0, yellow:1, green:1} // wird dynamisch gesetzt
           },
-          { id:"cashflowQuote", name:"Cashflow-Quote", unit:"%", type:"pct",
-            benchmark:{type:"higherBetter", red:1, yellow:2, green:6},
-            weight: 0.30,
-            explain:"Operativer CF / Umsatz"
+          { id:"cashflowQuote", name:"Cashflow-Quote", type:"pct",
+            explain:"Operativer CF / Umsatz",
+            weight:0.30,
+            benchmark:{type:"higherBetter", red:1, yellow:2, green:6}
           }
         ]
       },
       {
-        id: "ecom",
-        name: "E-Commerce (25%)",
-        weightTotal: 0.25,
-        kpis: [
-          { id:"marketingQuote", name:"Marketingquote", unit:"%", type:"pct",
-            benchmark:{type:"lowerBetter", green:10, yellow:15, red:20},
-            weight: 0.25,
-            explain:"Marketingkosten / Umsatz"
+        id:"ecom",
+        dotClass:"ecom",
+        titleEmoji:"🟪",
+        name:"E-Commerce",
+        weightTotal:0.25,
+        kpis:[
+          { id:"marketingQuote", name:"Marketingquote", type:"pct",
+            explain:"Marketingkosten / Umsatz",
+            weight:0.25,
+            benchmark:{type:"lowerBetter", green:10, yellow:15, red:20}
           },
-          { id:"conversion", name:"Conversion Rate", unit:"%", type:"pct",
-            benchmark:{type:"higherBetter", red:0.6, yellow:1.0, green:2.2},
-            weight: 0.35,
-            explain:"Bestellungen / Shopbesucher"
+          { id:"conversion", name:"Conversion Rate", type:"pct",
+            explain:"Bestellungen / Shopbesucher",
+            weight:0.35,
+            benchmark:{type:"higherBetter", red:0.6, yellow:1.0, green:2.2}
           },
-          { id:"aov", name:"AOV (Ø Warenkorb)", unit:"€", type:"eur0",
-            benchmark:{type:"higherBetter", red:60, yellow:80, green:130},
-            weight: 0.20,
-            explain:"Umsatz / Bestellungen"
+          { id:"aov", name:"AOV (Ø Warenkorb)", type:"eur0",
+            explain:"Umsatz / Bestellungen",
+            weight:0.20,
+            benchmark:{type:"higherBetter", red:60, yellow:80, green:130}
           },
-          { id:"retourenQuote", name:"Retourenquote", unit:"%", type:"pct",
-            benchmark:{type:"lowerBetter", green:5, yellow:9, red:15},
-            weight: 0.20,
-            explain:"Retouren / Umsatz"
+          { id:"retourenQuote", name:"Retourenquote", type:"pct",
+            explain:"Retouren / Umsatz",
+            weight:0.20,
+            benchmark:{type:"lowerBetter", green:5, yellow:9, red:15}
           }
         ]
       }
     ]
   };
 
-  // ========= Calculation =========
-  function computeKPIs() {
+  function computeKPIs(){
     const u  = num("umsatz");
     const w  = num("wareneinsatz");
     const e  = num("ebitda");
@@ -338,92 +425,101 @@
     const s  = num("shopbesucher");
     const r  = num("retouren");
 
-    if (u <= 0) throw new Error("Bitte mindestens Umsatz > 0 eingeben.");
+    if(u <= 0) throw new Error("Bitte mindestens Umsatz > 0 eingeben.");
+
+    const values = {
+      rohertrag: pct(safeDiv((u - w), u)),
+      ebitdaMarge: pct(safeDiv(e, u)),
+      nettoMarge: pct(safeDiv(j, u)),
+      roi: pct(safeDiv(j, ek)),
+
+      lagerUmschlag: safeDiv(w, lb),
+      umsatzProMA: safeDiv(u, ma),
+      umsatzProQM: safeDiv(u, vf),
+
+      ekQuote: pct(safeDiv(ek, gk)),
+      workingCapital: (uv - kv),
+      cashflowQuote: pct(safeDiv(cf, u)),
+
+      marketingQuote: pct(safeDiv(mk, u)),
+      conversion: pct(safeDiv(b, s)),
+      aov: safeDiv(u, b),
+      retourenQuote: pct(safeDiv(r, u))
+    };
 
     return {
-      input: {u,w,e,j,ek,gk,lb,ma,vf,uv,kv,cf,mk,b,s,r},
-      values: {
-        rohertrag: pct(safeDiv((u - w), u)),
-        ebitdaMarge: pct(safeDiv(e, u)),
-        nettoMarge: pct(safeDiv(j, u)),
-        roi: pct(safeDiv(j, ek)),
-        ekQuote: pct(safeDiv(ek, gk)),
-        lagerUmschlag: safeDiv(w, lb),
-        umsatzProMA: safeDiv(u, ma),
-        umsatzProQM: safeDiv(u, vf),
-        workingCapital: (uv - kv),
-        cashflowQuote: pct(safeDiv(cf, u)),
-        marketingQuote: pct(safeDiv(mk, u)),
-        conversion: pct(safeDiv(b, s)),
-        aov: safeDiv(u, b),
-        retourenQuote: pct(safeDiv(r, u))
-      }
+      input:{u,w,e,j,ek,gk,lb,ma,vf,uv,kv,cf,mk,b,s,r},
+      values
     };
   }
 
-  function formatValue(val, type){
-    if (type === "pct") return `${fmt(val)} %`;
-    if (type === "eur0") return `${fmtEUR(val)} €`;
-    return `${fmt(val, 2)} ${type === "num" ? "" : ""}`.trim();
-  }
-
-  function buildKPIBox(kpi, value, badge, score){
-    const div = document.createElement("div");
-    div.className = "kpi";
-    div.innerHTML = `
-      <div>
-        <b>${kpi.name}</b>
-        <div class="big">${formatValue(value, kpi.type)}</div>
-        <div class="muted">${kpi.explain}</div>
-        <div class="small">Gewicht (Benchmark): <span class="mono">${kpi.weight}</span> • Score: <span class="mono">${score.toFixed(1)}</span>/100</div>
+  function buildSectionBox(section, secScore, secBadge, kpiRowsHtml){
+    const box = document.createElement("div");
+    box.className = "sectionBox";
+    box.innerHTML = `
+      <div class="sectionHead">
+        <div>
+          <div class="sectionTitleRow">
+            <span class="dot ${section.dotClass}"></span>
+            <div>
+              <div class="sectionName">${section.titleEmoji} ${section.name} <span class="small">(25%)</span></div>
+              <div class="sectionWeight">Bereichsscore: <b>${secScore.toFixed(1)}</b> / 100</div>
+            </div>
+          </div>
+        </div>
+        <span class="badge ${secBadge.cls}">${secBadge.text}</span>
       </div>
-      <span class="badge ${badge.cls}">${badge.text}</span>
+      <div class="kpiList">
+        ${kpiRowsHtml}
+      </div>
     `;
-    return div;
+    return box;
   }
 
-  function calcAndRender(){
-    const { input, values } = computeKPIs();
+  function buildKpiRow(kpi, value, badge, score){
+    return `
+      <div class="kpiRow">
+        <div>
+          <div class="kpiName">- ${kpi.name}</div>
+          <div class="kpiExplain">${kpi.explain}</div>
+          <div class="kpiMeta">Benchmark-Gewicht: <span class="mono">${kpi.weight}</span> • KPI-Score: <span class="mono">${score.toFixed(1)}</span>/100</div>
+        </div>
+        <div class="kpiValue">${formatValue(value, kpi.type)}</div>
+        <span class="badge ${badge.cls}">${badge.text}</span>
+      </div>
+    `;
+  }
 
-    // Dynamischer Benchmark für Working Capital abhängig vom Umsatz:
-    // Idee: Grün ab 5% Umsatz, Rot bei <=0, Gelb dazwischen
-    // (kannst du später leicht ändern)
+  function calculateAndRender(){
+    const {input, values} = computeKPIs();
+
+    // Dynamischer Benchmark für Working Capital: Grün = 5% Umsatz, Gelb = 2.5% Umsatz, Rot = <=0
     const wcGreen = input.u * 0.05;
-    const liqSection = CONFIG.sections.find(s => s.id === "liq");
-    const wcKpi = liqSection.kpis.find(k => k.id === "workingCapital");
-    wcKpi.benchmark = { type:"higherBetter", red:0, yellow:(wcGreen * 0.5), green:wcGreen };
+    const wcYellow = input.u * 0.025;
+    const liq = CONFIG.sections.find(s => s.id === "liq");
+    const wcKpi = liq.kpis.find(k => k.id === "workingCapital");
+    wcKpi.benchmark = {type:"higherBetter", red:0, yellow:wcYellow, green:wcGreen};
 
     const sectionsDiv = $("sections");
     sectionsDiv.innerHTML = "";
 
-    const reportLines = [];
-    reportLines.push("Due-Diligence KPI Report");
-    reportLines.push(new Date().toLocaleString("de-DE"));
-    reportLines.push("");
-    reportLines.push("Eingaben:");
-    reportLines.push(`Umsatz: ${fmtEUR(input.u)} €`);
-    reportLines.push(`Wareneinsatz: ${fmtEUR(input.w)} €`);
-    reportLines.push(`EBITDA: ${fmtEUR(input.e)} €`);
-    reportLines.push(`Jahresüberschuss: ${fmtEUR(input.j)} €`);
-    reportLines.push(`Eigenkapital: ${fmtEUR(input.ek)} €`);
-    reportLines.push(`Gesamtkapital: ${fmtEUR(input.gk)} €`);
-    reportLines.push("");
+    const pdfModel = {
+      generatedAt: new Date().toLocaleString("de-DE"),
+      input,
+      total: null,
+      sections: []
+    };
 
+    // 4 Bereiche je 25% => Total = Durchschnitt der Bereichsscores (weil weights sum 1)
     let totalScore = 0;
 
-    CONFIG.sections.forEach(sec => {
+    CONFIG.sections.forEach(section => {
       let sumW = 0;
       let sumScoreW = 0;
+      let kpiRowsHtml = "";
+      const secForPdf = { name: section.name, emoji: section.titleEmoji, score: 0, badge: null, kpis: [] };
 
-      const secCard = document.createElement("div");
-      secCard.className = "sectionCard";
-
-      const kpiList = document.createElement("div");
-      kpiList.className = "kpiGrid";
-
-      reportLines.push(sec.name);
-
-      sec.kpis.forEach(kpi => {
+      section.kpis.forEach(kpi => {
         const v = values[kpi.id];
         const sc = scoreFromBenchmark(v, kpi.benchmark);
         const bd = badgeFor(v, kpi.benchmark);
@@ -431,88 +527,146 @@
         sumW += kpi.weight;
         sumScoreW += sc * kpi.weight;
 
-        kpiList.appendChild(buildKPIBox(kpi, v, bd, sc));
+        kpiRowsHtml += buildKpiRow(kpi, v, bd, sc);
 
-        reportLines.push(`- ${kpi.name}: ${formatValue(v, kpi.type)} | Ampel: ${bd.text} | Score: ${sc.toFixed(1)}/100 | Gewicht: ${kpi.weight}`);
+        secForPdf.kpis.push({
+          name: kpi.name,
+          valueText: formatValue(v, kpi.type),
+          badgeText: bd.text,
+          score: sc,
+          weight: kpi.weight,
+          explain: kpi.explain
+        });
       });
 
       const secScore = sumW ? (sumScoreW / sumW) : 0;
       const secBadge = totalBadgeFromScore(secScore);
 
-      totalScore += secScore * sec.weightTotal;
+      secForPdf.score = secScore;
+      secForPdf.badge = secBadge.text;
 
-      const head = document.createElement("div");
-      head.className = "row";
-      head.innerHTML = `
-        <div>
-          <div class="muted">${sec.name}</div>
-          <div class="big">${secScore.toFixed(1)} / 100</div>
-          <div class="small">Bereich zählt fix <b>25%</b> zum Gesamtscore. KPIs sind benchmark-gewichtet.</div>
-        </div>
-        <span class="badge ${secBadge.cls}">${secBadge.text}</span>
-      `;
+      // Bereich zählt fix 25%
+      totalScore += secScore * section.weightTotal;
 
-      secCard.appendChild(head);
-      secCard.appendChild(document.createElement("div")).className = "hr";
-      secCard.appendChild(kpiList);
-
-      sectionsDiv.appendChild(secCard);
-
-      reportLines.push(`Bereichsscore: ${secScore.toFixed(1)} / 100`);
-      reportLines.push("");
+      sectionsDiv.appendChild(buildSectionBox(section, secScore, secBadge, kpiRowsHtml));
+      pdfModel.sections.push(secForPdf);
     });
 
-    const total = totalScore; // bereits über 25%-Gewichte gemischt (Summe 1.0)
-    const tb = totalBadgeFromScore(total);
+    const tb = totalBadgeFromScore(totalScore);
+    const interp = interpretTotal(totalScore);
 
-    $("totalScore").textContent = `${total.toFixed(1)} / 100`;
+    $("totalScoreText").textContent = `${totalScore.toFixed(1)} / 100`;
     $("totalBadge").className = `badge ${tb.cls}`;
     $("totalBadge").textContent = tb.text;
+
+    $("totalInterpretation").innerHTML = `<b>Interpretation:</b> ${interp.label} – ${interp.hint}`;
     $("totalExplain").textContent = "Gesamt = Durchschnitt der 4 Bereichsscores (je 25%)";
 
     $("results").style.display = "block";
-
-    // PDF-Text für Export speichern
-    window.__REPORT_TEXT__ = reportLines.join("\n");
+    pdfModel.total = { score: totalScore, badge: tb.text, interpretation: interp.label, interpretationText: interp.hint };
+    window.__PDF_MODEL__ = pdfModel;
   }
 
-  // ========= PDF Export =========
+  // PDF Export: Übersicht + je Bereich eigene Seite
   function exportPDF(){
-    const text = window.__REPORT_TEXT__ || "Bitte zuerst Kennzahlen berechnen.";
+    const model = window.__PDF_MODEL__;
+    if(!model){ alert("Bitte zuerst Kennzahlen berechnen."); return; }
+
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit:"mm", format:"a4" });
 
-    const margin = 10;
-    const maxWidth = 190;
-    const lines = doc.splitTextToSize(text, maxWidth);
+    const margin = 12;
+    const maxW = 190;
+    const lh = 6;
 
-    let y = 12;
-    const lineHeight = 6;
+    function addTitle(text, y){
+      doc.setFontSize(14);
+      doc.text(text, margin, y);
+      doc.setFontSize(11);
+    }
 
-    lines.forEach(line => {
-      if (y > 285) { doc.addPage(); y = 12; }
-      doc.text(line, margin, y);
-      y += lineHeight;
+    function addLines(lines, startY){
+      let y = startY;
+      lines.forEach(line => {
+        if (y > 285) { doc.addPage(); y = 12; }
+        doc.text(line, margin, y);
+        y += lh;
+      });
+      return y;
+    }
+
+    // Seite 1: Übersicht
+    addTitle("Due-Diligence KPI Report", 14);
+    doc.setFontSize(11);
+    let y = 22;
+    y = addLines([
+      `Erstellt am: ${model.generatedAt}`,
+      "",
+      `Gesamtscore: ${model.total.score.toFixed(1)} / 100`,
+      `Ampel: ${model.total.badge}`,
+      `Interpretation: ${model.total.interpretation} – ${model.total.interpretationText}`,
+      "",
+      "Eingaben (Auszug):",
+      `- Umsatz: ${fmtEUR(model.input.u)} €`,
+      `- Wareneinsatz: ${fmtEUR(model.input.w)} €`,
+      `- EBITDA: ${fmtEUR(model.input.e)} €`,
+      `- Jahresüberschuss: ${fmtEUR(model.input.j)} €`,
+      `- Eigenkapital: ${fmtEUR(model.input.ek)} €`,
+      `- Gesamtkapital: ${fmtEUR(model.input.gk)} €`,
+      `- Ø Lagerbestand: ${fmtEUR(model.input.lb)} €`,
+      `- Mitarbeiter (FTE): ${model.input.ma}`,
+      `- Verkaufsfläche: ${model.input.vf} m²`,
+      `- Umlaufvermögen: ${fmtEUR(model.input.uv)} €`,
+      `- Kurzfr. Verbindlichkeiten: ${fmtEUR(model.input.kv)} €`,
+      `- Operativer Cashflow: ${fmtEUR(model.input.cf)} €`,
+      `- Marketingkosten: ${fmtEUR(model.input.mk)} €`,
+      `- Bestellungen: ${model.input.b}`,
+      `- Shopbesucher: ${model.input.s}`,
+      `- Retouren: ${fmtEUR(model.input.r)} €`,
+      ""
+    ], y);
+
+    doc.setFontSize(10);
+    y = addLines(["Hinweis: Jede Kategorie folgt auf einer eigenen Seite."], y);
+
+    // Je Bereich: eigene Seite
+    model.sections.forEach(sec => {
+      doc.addPage();
+      doc.setFontSize(13);
+      doc.text(`${sec.emoji} ${sec.name} (25%)`, margin, 14);
+      doc.setFontSize(11);
+      doc.text(`Bereichsscore: ${sec.score.toFixed(1)} / 100   |   Ampel: ${sec.badge}`, margin, 22);
+
+      const lines = [];
+      lines.push("");
+      lines.push("KPIs:");
+      sec.kpis.forEach(k => {
+        lines.push(`- ${k.name}: ${k.valueText}   |   ${k.badgeText}   |   KPI-Score: ${k.score.toFixed(1)}/100   |   Gewicht: ${k.weight}`);
+      });
+
+      const wrapped = doc.splitTextToSize(lines.join("\n"), maxW);
+      doc.setFontSize(10);
+      addLines(wrapped, 32);
     });
 
     doc.save(`Due-Diligence_KPI_Report_${new Date().toISOString().slice(0,10)}.pdf`);
   }
 
-  // ========= UI Events =========
+  // Events
   $("calc").addEventListener("click", () => {
-    try { calcAndRender(); }
-    catch (e) { alert(e.message || "Fehler bei der Berechnung."); }
+    try { calculateAndRender(); }
+    catch(e){ alert(e.message || "Fehler bei der Berechnung."); }
   });
 
   $("pdf").addEventListener("click", () => {
     try { exportPDF(); }
-    catch { alert("PDF-Export fehlgeschlagen. Bitte erneut versuchen."); }
+    catch{ alert("PDF-Export fehlgeschlagen."); }
   });
 
   $("reset").addEventListener("click", () => {
     document.querySelectorAll("input").forEach(i => i.value = "");
     $("results").style.display = "none";
-    window.__REPORT_TEXT__ = "";
+    window.__PDF_MODEL__ = null;
   });
 
   $("fillDemo").addEventListener("click", () => {
