@@ -70,6 +70,7 @@
     .big{ font-size:22px; font-weight:900; }
     .muted{ color:var(--muted); font-size:12px; }
     .small{ font-size:12px; color:#555; }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
 
     .sectionsGrid{
       display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;
@@ -111,9 +112,36 @@
     .kpiName{ font-weight:700; }
     .kpiExplain{ font-size:12px; color:var(--muted); margin-top:2px; }
     .kpiValue{ font-weight:900; }
-    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-
     .kpiMeta{ font-size:12px; color:#555; }
+
+    /* Inputs grouped */
+    .inputSection{
+      border:1px solid var(--border);
+      border-radius:16px;
+      background:#fff;
+      overflow:hidden;
+      margin-top:12px;
+    }
+    .inputHead{
+      padding:12px;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+      border-bottom:1px solid var(--border);
+      background:#fafbff;
+    }
+    .inputTitle{
+      display:flex; align-items:center; gap:10px;
+      font-weight:900;
+    }
+    .help{
+      font-size:12px;
+      color:var(--muted);
+      margin-top:6px;
+      line-height:1.35;
+    }
+    .help b{ color:#333; }
   </style>
 </head>
 
@@ -123,74 +151,123 @@
     <div class="row">
       <div>
         <h1>Due-Diligence KPI App</h1>
-        <div class="sub">Werte eingeben → KPIs + Ampel + Bereichsscore (4 Bereiche je 25%) + PDF</div>
+        <div class="sub">Werte eingeben → Zuordnung pro Bereich → KPIs + Ampel + PDF (je Bereich 1 Seite)</div>
       </div>
       <div class="row">
-        <span class="pill">v2</span>
+        <span class="pill">v3</span>
         <button class="btn secondary" id="fillDemo">Demo-Werte</button>
         <button class="btn secondary" id="reset">Reset</button>
       </div>
     </div>
 
-    <h2>Grunddaten</h2>
-    <div class="grid">
-      <div>
-        <label>Umsatz (€)</label>
-        <input id="umsatz" placeholder="z. B. 1.250.000" inputmode="decimal">
-
-        <label>Wareneinsatz (€)</label>
-        <input id="wareneinsatz" placeholder="z. B. 720.000" inputmode="decimal">
-
-        <label>EBITDA (€)</label>
-        <input id="ebitda" placeholder="z. B. 140.000" inputmode="decimal">
-
-        <label>Jahresüberschuss (€)</label>
-        <input id="jahresueberschuss" placeholder="z. B. 70.000" inputmode="decimal">
-
-        <label>Eigenkapital (€)</label>
-        <input id="eigenkapital" placeholder="z. B. 280.000" inputmode="decimal">
-
-        <label>Gesamtkapital (€)</label>
-        <input id="gesamtkapital" placeholder="z. B. 900.000" inputmode="decimal">
+    <!-- INPUTS grouped with "needed for" -->
+    <div class="inputSection">
+      <div class="inputHead">
+        <div class="inputTitle"><span class="dot rent"></span> 🟦 Rentabilität – Eingaben</div>
+        <span class="pill">für Rohertrag / EBITDA / Netto / ROI</span>
       </div>
+      <div class="grid" style="padding:12px;">
+        <div>
+          <label>Umsatz (€)</label>
+          <input id="umsatz" placeholder="z. B. 1.250.000" inputmode="decimal">
+          <div class="help"><b>Benötigt für:</b> Rentabilität → Rohertrag, EBITDA-Marge, Netto-Marge | Effizienz → Umsatz/MA, Umsatz/m² | Liquidität → Cashflow-Quote, Working-Capital-Benchmark | E-Commerce → Marketingquote, AOV, Retourenquote</div>
 
-      <div>
-        <label>Ø Lagerbestand (€)</label>
-        <input id="lagerbestand" placeholder="z. B. 180.000" inputmode="decimal">
+          <label>Wareneinsatz (€)</label>
+          <input id="wareneinsatz" placeholder="z. B. 720.000" inputmode="decimal">
+          <div class="help"><b>Benötigt für:</b> Rentabilität → Rohertrag | Effizienz → Lagerumschlag</div>
 
-        <label>Mitarbeiter (FTE)</label>
-        <input id="mitarbeiter" placeholder="z. B. 8" inputmode="decimal">
+          <label>EBITDA (€)</label>
+          <input id="ebitda" placeholder="z. B. 140.000" inputmode="decimal">
+          <div class="help"><b>Benötigt für:</b> Rentabilität → EBITDA-Marge</div>
 
-        <label>Verkaufsfläche (m²)</label>
-        <input id="verkaufsflaeche" placeholder="z. B. 250" inputmode="decimal">
+          <label>Jahresüberschuss (€)</label>
+          <input id="jahresueberschuss" placeholder="z. B. 70.000" inputmode="decimal">
+          <div class="help"><b>Benötigt für:</b> Rentabilität → Netto-Marge, ROI</div>
+        </div>
 
-        <label>Umlaufvermögen (€)</label>
-        <input id="umlaufvermoegen" placeholder="z. B. 320.000" inputmode="decimal">
+        <div>
+          <label>Eigenkapital (€)</label>
+          <input id="eigenkapital" placeholder="z. B. 280.000" inputmode="decimal">
+          <div class="help"><b>Benötigt für:</b> Rentabilität → ROI | Liquidität → Eigenkapitalquote</div>
 
-        <label>Kurzfr. Verbindlichkeiten (€)</label>
-        <input id="kurzfristigeVerbindlichkeiten" placeholder="z. B. 210.000" inputmode="decimal">
-
-        <label>Operativer Cashflow (€)</label>
-        <input id="operativerCashflow" placeholder="z. B. 95.000" inputmode="decimal">
+          <label>Gesamtkapital (€)</label>
+          <input id="gesamtkapital" placeholder="z. B. 900.000" inputmode="decimal">
+          <div class="help"><b>Benötigt für:</b> Liquidität → Eigenkapitalquote</div>
+        </div>
       </div>
     </div>
 
-    <h2>E-Commerce / Sonstiges</h2>
-    <div class="grid">
-      <div>
-        <label>Marketingkosten (€)</label>
-        <input id="marketingkosten" placeholder="z. B. 85.000" inputmode="decimal">
-
-        <label>Bestellungen (Anzahl)</label>
-        <input id="bestellungen" placeholder="z. B. 12.500" inputmode="decimal">
+    <div class="inputSection">
+      <div class="inputHead">
+        <div class="inputTitle"><span class="dot eff"></span> 🟨 Effizienz – Eingaben</div>
+        <span class="pill">für Lagerumschlag / Umsatz pro MA / Umsatz pro m²</span>
       </div>
+      <div class="grid" style="padding:12px;">
+        <div>
+          <label>Ø Lagerbestand (€)</label>
+          <input id="lagerbestand" placeholder="z. B. 180.000" inputmode="decimal">
+          <div class="help"><b>Benötigt für:</b> Effizienz → Lagerumschlag</div>
 
-      <div>
-        <label>Shopbesucher (Anzahl)</label>
-        <input id="shopbesucher" placeholder="z. B. 520.000" inputmode="decimal">
+          <label>Mitarbeiter (FTE)</label>
+          <input id="mitarbeiter" placeholder="z. B. 8" inputmode="decimal">
+          <div class="help"><b>Benötigt für:</b> Effizienz → Umsatz/MA</div>
+        </div>
+        <div>
+          <label>Verkaufsfläche (m²)</label>
+          <input id="verkaufsflaeche" placeholder="z. B. 250" inputmode="decimal">
+          <div class="help"><b>Benötigt für:</b> Effizienz → Umsatz/m²</div>
+        </div>
+      </div>
+    </div>
 
-        <label>Retouren (€)</label>
-        <input id="retouren" placeholder="z. B. 55.000" inputmode="decimal">
+    <div class="inputSection">
+      <div class="inputHead">
+        <div class="inputTitle"><span class="dot liq"></span> 🟩 Liquidität – Eingaben</div>
+        <span class="pill">für EK-Quote / Working Capital / Cashflow-Quote</span>
+      </div>
+      <div class="grid" style="padding:12px;">
+        <div>
+          <label>Umlaufvermögen (€)</label>
+          <input id="umlaufvermoegen" placeholder="z. B. 320.000" inputmode="decimal">
+          <div class="help"><b>Benötigt für:</b> Liquidität → Working Capital</div>
+
+          <label>Kurzfr. Verbindlichkeiten (€)</label>
+          <input id="kurzfristigeVerbindlichkeiten" placeholder="z. B. 210.000" inputmode="decimal">
+          <div class="help"><b>Benötigt für:</b> Liquidität → Working Capital</div>
+        </div>
+        <div>
+          <label>Operativer Cashflow (€)</label>
+          <input id="operativerCashflow" placeholder="z. B. 95.000" inputmode="decimal">
+          <div class="help"><b>Benötigt für:</b> Liquidität → Cashflow-Quote</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="inputSection">
+      <div class="inputHead">
+        <div class="inputTitle"><span class="dot ecom"></span> 🟪 E-Commerce – Eingaben</div>
+        <span class="pill">für Marketingquote / Conversion / AOV / Retourenquote</span>
+      </div>
+      <div class="grid" style="padding:12px;">
+        <div>
+          <label>Marketingkosten (€)</label>
+          <input id="marketingkosten" placeholder="z. B. 85.000" inputmode="decimal">
+          <div class="help"><b>Benötigt für:</b> E-Commerce → Marketingquote</div>
+
+          <label>Bestellungen (Anzahl)</label>
+          <input id="bestellungen" placeholder="z. B. 12.500" inputmode="decimal">
+          <div class="help"><b>Benötigt für:</b> E-Commerce → Conversion Rate, AOV</div>
+        </div>
+
+        <div>
+          <label>Shopbesucher (Anzahl)</label>
+          <input id="shopbesucher" placeholder="z. B. 520.000" inputmode="decimal">
+          <div class="help"><b>Benötigt für:</b> E-Commerce → Conversion Rate</div>
+
+          <label>Retouren (€)</label>
+          <input id="retouren" placeholder="z. B. 55.000" inputmode="decimal">
+          <div class="help"><b>Benötigt für:</b> E-Commerce → Retourenquote</div>
+        </div>
       </div>
     </div>
 
@@ -219,7 +296,7 @@
       <div class="sectionsGrid" id="sections"></div>
 
       <div class="note" style="margin-top:10px;">
-        Benchmarks & KPI-Gewichte sind im Code zentral in <span class="mono">CONFIG</span> definiert und können jederzeit angepasst werden.
+        Benchmarks & KPI-Gewichte sind im Code zentral in <span class="mono">CONFIG</span> definiert.
       </div>
     </div>
 
@@ -229,7 +306,6 @@
 <script>
   const $ = (id) => document.getElementById(id);
 
-  // Eingaben lesen (erlaubt 1.234.567,89 oder 1234567.89)
   function num(id){
     const raw = ($(id).value || "").toString().trim();
     if(!raw) return 0;
@@ -240,21 +316,14 @@
   function safeDiv(a,b){ return b ? (a/b) : 0; }
   function pct(x){ return x * 100; }
 
-  function fmtEUR(n){
-    return n.toLocaleString("de-DE", {maximumFractionDigits:0});
-  }
-  function fmt(n, digits=2){
-    return n.toLocaleString("de-DE", {maximumFractionDigits:digits, minimumFractionDigits:digits});
-  }
-
+  function fmtEUR(n){ return n.toLocaleString("de-DE", {maximumFractionDigits:0}); }
+  function fmt(n, digits=2){ return n.toLocaleString("de-DE", {maximumFractionDigits:digits, minimumFractionDigits:digits}); }
   function formatValue(val, type){
     if(type === "pct") return `${fmt(val)} %`;
     if(type === "eur0") return `${fmtEUR(val)} €`;
-    // num
     return `${fmt(val, 2)}`;
   }
 
-  // Ampel (rot/gelb/grün) aus Benchmarks
   function badgeFor(value, bm){
     if (bm.type === "higherBetter"){
       if (value >= bm.green) return {cls:"green", text:"🟢 Grün"};
@@ -267,7 +336,6 @@
     }
   }
 
-  // Score 0..100 (linear)
   function scoreFromBenchmark(value, bm){
     if (!Number.isFinite(value)) return 0;
 
@@ -282,7 +350,6 @@
     }
   }
 
-  // Gesamtscore-Interpretation
   function interpretTotal(score){
     if (score >= 75) return {label:"sehr gut", hint:"Sehr gute Gesamtperformance im Benchmark-Vergleich."};
     if (score >= 60) return {label:"solide", hint:"Solide – es gibt Optimierungspotenzial in einzelnen Bereichen."};
@@ -295,113 +362,40 @@
     return {cls:"red", text:"🔴 Kritisch"};
   }
 
-  // ========= CONFIG: Bereiche (je 25%) + KPI-Gewichte + Benchmarks =========
   const CONFIG = {
     sections: [
       {
-        id:"rent",
-        dotClass:"rent",
-        titleEmoji:"🟦",
-        name:"Rentabilität",
-        weightTotal:0.25,
+        id:"rent", dotClass:"rent", titleEmoji:"🟦", name:"Rentabilität", weightTotal:0.25,
         kpis:[
-          { id:"rohertrag", name:"Rohertrag", type:"pct",
-            explain:"(Umsatz − Wareneinsatz) / Umsatz",
-            weight:0.30,
-            benchmark:{type:"higherBetter", red:15, yellow:20, green:30}
-          },
-          { id:"ebitdaMarge", name:"EBITDA-Marge", type:"pct",
-            explain:"EBITDA / Umsatz",
-            weight:0.30,
-            benchmark:{type:"higherBetter", red:3, yellow:5, green:12}
-          },
-          { id:"nettoMarge", name:"Netto-Marge", type:"pct",
-            explain:"Jahresüberschuss / Umsatz",
-            weight:0.20,
-            benchmark:{type:"higherBetter", red:1, yellow:2, green:6}
-          },
-          { id:"roi", name:"ROI", type:"pct",
-            explain:"Jahresüberschuss / Eigenkapital",
-            weight:0.20,
-            benchmark:{type:"higherBetter", red:5, yellow:10, green:18}
-          }
+          { id:"rohertrag", name:"Rohertrag", type:"pct", explain:"(Umsatz − Wareneinsatz) / Umsatz", weight:0.30, benchmark:{type:"higherBetter", red:15, yellow:20, green:30}},
+          { id:"ebitdaMarge", name:"EBITDA-Marge", type:"pct", explain:"EBITDA / Umsatz", weight:0.30, benchmark:{type:"higherBetter", red:3, yellow:5, green:12}},
+          { id:"nettoMarge", name:"Netto-Marge", type:"pct", explain:"Jahresüberschuss / Umsatz", weight:0.20, benchmark:{type:"higherBetter", red:1, yellow:2, green:6}},
+          { id:"roi", name:"ROI", type:"pct", explain:"Jahresüberschuss / Eigenkapital", weight:0.20, benchmark:{type:"higherBetter", red:5, yellow:10, green:18}}
         ]
       },
       {
-        id:"eff",
-        dotClass:"eff",
-        titleEmoji:"🟨",
-        name:"Effizienz",
-        weightTotal:0.25,
+        id:"eff", dotClass:"eff", titleEmoji:"🟨", name:"Effizienz", weightTotal:0.25,
         kpis:[
-          { id:"lagerUmschlag", name:"Lagerumschlag", type:"num",
-            explain:"Wareneinsatz / Ø Lagerbestand",
-            weight:0.35,
-            benchmark:{type:"higherBetter", red:1.5, yellow:2.0, green:4.0}
-          },
-          { id:"umsatzProMA", name:"Umsatz / MA", type:"eur0",
-            explain:"Umsatz / FTE",
-            weight:0.35,
-            benchmark:{type:"higherBetter", red:120000, yellow:150000, green:230000}
-          },
-          { id:"umsatzProQM", name:"Umsatz / m²", type:"eur0",
-            explain:"Umsatz / Verkaufsfläche",
-            weight:0.30,
-            benchmark:{type:"higherBetter", red:2500, yellow:3000, green:5500}
-          }
+          { id:"lagerUmschlag", name:"Lagerumschlag", type:"num", explain:"Wareneinsatz / Ø Lagerbestand", weight:0.35, benchmark:{type:"higherBetter", red:1.5, yellow:2.0, green:4.0}},
+          { id:"umsatzProMA", name:"Umsatz / MA", type:"eur0", explain:"Umsatz / FTE", weight:0.35, benchmark:{type:"higherBetter", red:120000, yellow:150000, green:230000}},
+          { id:"umsatzProQM", name:"Umsatz / m²", type:"eur0", explain:"Umsatz / Verkaufsfläche", weight:0.30, benchmark:{type:"higherBetter", red:2500, yellow:3000, green:5500}}
         ]
       },
       {
-        id:"liq",
-        dotClass:"liq",
-        titleEmoji:"🟩",
-        name:"Liquidität",
-        weightTotal:0.25,
+        id:"liq", dotClass:"liq", titleEmoji:"🟩", name:"Liquidität", weightTotal:0.25,
         kpis:[
-          { id:"ekQuote", name:"Eigenkapitalquote", type:"pct",
-            explain:"Eigenkapital / Gesamtkapital",
-            weight:0.35,
-            benchmark:{type:"higherBetter", red:8, yellow:12, green:25}
-          },
-          { id:"workingCapital", name:"Working Capital", type:"eur0",
-            explain:"Umlaufvermögen − kurzfr. Verbindlichkeiten",
-            weight:0.35,
-            benchmark:{type:"higherBetter", red:0, yellow:1, green:1} // wird dynamisch gesetzt
-          },
-          { id:"cashflowQuote", name:"Cashflow-Quote", type:"pct",
-            explain:"Operativer CF / Umsatz",
-            weight:0.30,
-            benchmark:{type:"higherBetter", red:1, yellow:2, green:6}
-          }
+          { id:"ekQuote", name:"Eigenkapitalquote", type:"pct", explain:"Eigenkapital / Gesamtkapital", weight:0.35, benchmark:{type:"higherBetter", red:8, yellow:12, green:25}},
+          { id:"workingCapital", name:"Working Capital", type:"eur0", explain:"Umlaufvermögen − kurzfr. Verbindlichkeiten", weight:0.35, benchmark:{type:"higherBetter", red:0, yellow:1, green:1}},
+          { id:"cashflowQuote", name:"Cashflow-Quote", type:"pct", explain:"Operativer CF / Umsatz", weight:0.30, benchmark:{type:"higherBetter", red:1, yellow:2, green:6}}
         ]
       },
       {
-        id:"ecom",
-        dotClass:"ecom",
-        titleEmoji:"🟪",
-        name:"E-Commerce",
-        weightTotal:0.25,
+        id:"ecom", dotClass:"ecom", titleEmoji:"🟪", name:"E-Commerce", weightTotal:0.25,
         kpis:[
-          { id:"marketingQuote", name:"Marketingquote", type:"pct",
-            explain:"Marketingkosten / Umsatz",
-            weight:0.25,
-            benchmark:{type:"lowerBetter", green:10, yellow:15, red:20}
-          },
-          { id:"conversion", name:"Conversion Rate", type:"pct",
-            explain:"Bestellungen / Shopbesucher",
-            weight:0.35,
-            benchmark:{type:"higherBetter", red:0.6, yellow:1.0, green:2.2}
-          },
-          { id:"aov", name:"AOV (Ø Warenkorb)", type:"eur0",
-            explain:"Umsatz / Bestellungen",
-            weight:0.20,
-            benchmark:{type:"higherBetter", red:60, yellow:80, green:130}
-          },
-          { id:"retourenQuote", name:"Retourenquote", type:"pct",
-            explain:"Retouren / Umsatz",
-            weight:0.20,
-            benchmark:{type:"lowerBetter", green:5, yellow:9, red:15}
-          }
+          { id:"marketingQuote", name:"Marketingquote", type:"pct", explain:"Marketingkosten / Umsatz", weight:0.25, benchmark:{type:"lowerBetter", green:10, yellow:15, red:20}},
+          { id:"conversion", name:"Conversion Rate", type:"pct", explain:"Bestellungen / Shopbesucher", weight:0.35, benchmark:{type:"higherBetter", red:0.6, yellow:1.0, green:2.2}},
+          { id:"aov", name:"AOV (Ø Warenkorb)", type:"eur0", explain:"Umsatz / Bestellungen", weight:0.20, benchmark:{type:"higherBetter", red:60, yellow:80, green:130}},
+          { id:"retourenQuote", name:"Retourenquote", type:"pct", explain:"Retouren / Umsatz", weight:0.20, benchmark:{type:"lowerBetter", green:5, yellow:9, red:15}}
         ]
       }
     ]
@@ -447,10 +441,21 @@
       retourenQuote: pct(safeDiv(r, u))
     };
 
-    return {
-      input:{u,w,e,j,ek,gk,lb,ma,vf,uv,kv,cf,mk,b,s,r},
-      values
-    };
+    return { input:{u,w,e,j,ek,gk,lb,ma,vf,uv,kv,cf,mk,b,s,r}, values };
+  }
+
+  function buildKpiRow(kpi, value, badge, score){
+    return `
+      <div class="kpiRow">
+        <div>
+          <div class="kpiName">- ${kpi.name}</div>
+          <div class="kpiExplain">${kpi.explain}</div>
+          <div class="kpiMeta">Benchmark-Gewicht: <span class="mono">${kpi.weight}</span> • KPI-Score: <span class="mono">${score.toFixed(1)}</span>/100</div>
+        </div>
+        <div class="kpiValue">${formatValue(value, kpi.type)}</div>
+        <span class="badge ${badge.cls}">${badge.text}</span>
+      </div>
+    `;
   }
 
   function buildSectionBox(section, secScore, secBadge, kpiRowsHtml){
@@ -469,31 +474,15 @@
         </div>
         <span class="badge ${secBadge.cls}">${secBadge.text}</span>
       </div>
-      <div class="kpiList">
-        ${kpiRowsHtml}
-      </div>
+      <div class="kpiList">${kpiRowsHtml}</div>
     `;
     return box;
-  }
-
-  function buildKpiRow(kpi, value, badge, score){
-    return `
-      <div class="kpiRow">
-        <div>
-          <div class="kpiName">- ${kpi.name}</div>
-          <div class="kpiExplain">${kpi.explain}</div>
-          <div class="kpiMeta">Benchmark-Gewicht: <span class="mono">${kpi.weight}</span> • KPI-Score: <span class="mono">${score.toFixed(1)}</span>/100</div>
-        </div>
-        <div class="kpiValue">${formatValue(value, kpi.type)}</div>
-        <span class="badge ${badge.cls}">${badge.text}</span>
-      </div>
-    `;
   }
 
   function calculateAndRender(){
     const {input, values} = computeKPIs();
 
-    // Dynamischer Benchmark für Working Capital: Grün = 5% Umsatz, Gelb = 2.5% Umsatz, Rot = <=0
+    // Working Capital Benchmark dynamisch: Grün 5% Umsatz, Gelb 2.5% Umsatz, Rot <=0
     const wcGreen = input.u * 0.05;
     const wcYellow = input.u * 0.025;
     const liq = CONFIG.sections.find(s => s.id === "liq");
@@ -510,7 +499,6 @@
       sections: []
     };
 
-    // 4 Bereiche je 25% => Total = Durchschnitt der Bereichsscores (weil weights sum 1)
     let totalScore = 0;
 
     CONFIG.sections.forEach(section => {
@@ -545,7 +533,6 @@
       secForPdf.score = secScore;
       secForPdf.badge = secBadge.text;
 
-      // Bereich zählt fix 25%
       totalScore += secScore * section.weightTotal;
 
       sectionsDiv.appendChild(buildSectionBox(section, secScore, secBadge, kpiRowsHtml));
@@ -567,7 +554,6 @@
     window.__PDF_MODEL__ = pdfModel;
   }
 
-  // PDF Export: Übersicht + je Bereich eigene Seite
   function exportPDF(){
     const model = window.__PDF_MODEL__;
     if(!model){ alert("Bitte zuerst Kennzahlen berechnen."); return; }
@@ -629,7 +615,7 @@
     doc.setFontSize(10);
     y = addLines(["Hinweis: Jede Kategorie folgt auf einer eigenen Seite."], y);
 
-    // Je Bereich: eigene Seite
+    // Je Bereich eigene Seite
     model.sections.forEach(sec => {
       doc.addPage();
       doc.setFontSize(13);
@@ -641,7 +627,7 @@
       lines.push("");
       lines.push("KPIs:");
       sec.kpis.forEach(k => {
-        lines.push(`- ${k.name}: ${k.valueText}   |   ${k.badgeText}   |   KPI-Score: ${k.score.toFixed(1)}/100   |   Gewicht: ${k.weight}`);
+        lines.push(`- ${k.name}: ${k.valueText} | ${k.badgeText} | KPI-Score: ${k.score.toFixed(1)}/100 | Gewicht: ${k.weight}`);
       });
 
       const wrapped = doc.splitTextToSize(lines.join("\n"), maxW);
