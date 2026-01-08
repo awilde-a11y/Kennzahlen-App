@@ -1,171 +1,538 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<title>Unternehmens-KPI & Due-Diligence Tool</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Due-Diligence KPI App</title>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-<style>
-body {
-  font-family: Arial, sans-serif;
-  max-width: 1200px;
-  margin: 30px auto;
-}
-h2 {
-  border-bottom: 1px solid #ccc;
-  margin-top: 40px;
-}
-input {
-  width: 100%;
-  padding: 6px;
-  margin-bottom: 8px;
-}
-button {
-  padding: 12px;
-  width: 100%;
-  font-size: 16px;
-  margin-top: 20px;
-}
-.result {
-  font-weight: bold;
-  margin: 4px 0;
-}
-.green { color: green; }
-.orange { color: orange; }
-.red { color: red; }
-.grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-.scorebox {
-  font-size: 26px;
-  margin-top: 20px;
-}
-</style>
+  <style>
+    :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
+    body { margin:0; background:#f6f7fb; color:#111; }
+    .wrap { max-width:1150px; margin:0 auto; padding:18px; }
+    .card { background:#fff; border-radius:18px; box-shadow:0 6px 18px rgba(0,0,0,.06); padding:16px; }
+    h1 { margin:0; font-size:20px; }
+    .sub { margin:6px 0 0; color:#555; font-size:13px; }
+    h2 { margin:18px 0 8px; font-size:15px; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    @media (max-width:900px){ .grid{ grid-template-columns:1fr; } }
+
+    label { display:block; font-size:12px; color:#666; margin:10px 0 6px; }
+    input {
+      width:100%; padding:10px 12px; border-radius:12px; border:1px solid #d9dbe6;
+      font:inherit; box-sizing:border-box; background:#fff; color:#111;
+    }
+
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
+    button {
+      padding:10px 12px; border-radius:12px; border:1px solid #111;
+      background:#111; color:#fff; font:inherit; cursor:pointer;
+    }
+    button.secondary { background:#fff; color:#111; border:1px solid #d9dbe6; }
+
+    .hr { height:1px; background:#eef0f6; border:0; margin:14px 0; }
+    .note { font-size:12px; color:#666; }
+
+    .pill { padding:6px 10px; border-radius:999px; font-size:12px; border:1px solid #e4e6f1; background:#f1f2f7; white-space:nowrap; }
+    .badge { padding:6px 10px; border-radius:999px; font-size:12px; border:1px solid #e4e6f1; background:#f1f2f7; white-space:nowrap; font-weight:650; }
+    .red { background:#fff0f0; border-color:#ffd6d6; color:#b00020; }
+    .yellow { background:#fff7e6; border-color:#ffe2a8; color:#8a5a00; }
+    .green { background:#f0fff3; border-color:#d9f5df; color:#1c7c2f; }
+
+    .sectionCard { border:1px solid #eef0f6; border-radius:16px; padding:12px; background:#fff; }
+    .kpiGrid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:10px; }
+    @media (max-width:1000px){ .kpiGrid{ grid-template-columns:1fr; } }
+
+    .kpi { border:1px solid #eef0f6; border-radius:16px; padding:12px; background:#fff; display:flex; gap:12px; justify-content:space-between; align-items:flex-start; }
+    .kpi b { display:block; margin-bottom:2px; }
+    .muted { color:#666; font-size:12px; }
+    .big { font-size:20px; font-weight:800; }
+    .small { font-size:12px; color:#555; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+  </style>
 </head>
 
 <body>
+<div class="wrap">
+  <div class="card">
+    <div class="row">
+      <div>
+        <h1>Due-Diligence KPI App</h1>
+        <div class="sub">Werte eingeben → Kennzahlen + Ampel + Score (4 Bereiche je 25%)</div>
+      </div>
+      <div class="row">
+        <span class="pill">v1</span>
+        <button class="secondary" id="fillDemo">Demo-Werte</button>
+        <button class="secondary" id="reset">Reset</button>
+      </div>
+    </div>
 
-<h1>Due-Diligence KPI Tool</h1>
+    <h2>Grunddaten</h2>
+    <div class="grid">
+      <div>
+        <label>Umsatz (€)</label>
+        <input id="umsatz" placeholder="z. B. 1.250.000" inputmode="decimal">
+        <label>Wareneinsatz (€)</label>
+        <input id="wareneinsatz" placeholder="z. B. 720.000" inputmode="decimal">
+        <label>EBITDA (€)</label>
+        <input id="ebitda" placeholder="z. B. 140.000" inputmode="decimal">
+        <label>Jahresüberschuss (€)</label>
+        <input id="jahresueberschuss" placeholder="z. B. 70.000" inputmode="decimal">
+        <label>Eigenkapital (€)</label>
+        <input id="eigenkapital" placeholder="z. B. 280.000" inputmode="decimal">
+        <label>Gesamtkapital (€)</label>
+        <input id="gesamtkapital" placeholder="z. B. 900.000" inputmode="decimal">
+      </div>
 
-<h2>Grunddaten</h2>
-<div class="grid">
-<input id="umsatz" placeholder="Umsatz €">
-<input id="wareneinsatz" placeholder="Wareneinsatz €">
-<input id="ebitda" placeholder="EBITDA €">
-<input id="jahresueberschuss" placeholder="Jahresüberschuss €">
-<input id="eigenkapital" placeholder="Eigenkapital €">
-<input id="gesamtkapital" placeholder="Gesamtkapital €">
-<input id="lagerbestand" placeholder="Ø Lagerbestand €">
-<input id="personalkosten" placeholder="Personalkosten €">
-<input id="mitarbeiter" placeholder="Mitarbeiter (FTE)">
-<input id="verkaufsflaeche" placeholder="Verkaufsfläche m²">
-<input id="umlaufvermoegen" placeholder="Umlaufvermögen €">
-<input id="vorräte" placeholder="Vorräte €">
-<input id="kurzfristigeVerbindlichkeiten" placeholder="kurzfr. Verbindlichkeiten €">
-<input id="operativerCashflow" placeholder="Operativer Cashflow €">
-<input id="forderungen" placeholder="Forderungen aus L+L €">
-<input id="marketingkosten" placeholder="Marketingkosten €">
-<input id="bestellungen" placeholder="Bestellungen">
-<input id="shopbesucher" placeholder="Shopbesucher">
-<input id="retouren" placeholder="Retouren €">
+      <div>
+        <label>Ø Lagerbestand (€)</label>
+        <input id="lagerbestand" placeholder="z. B. 180.000" inputmode="decimal">
+        <label>Mitarbeiter (FTE)</label>
+        <input id="mitarbeiter" placeholder="z. B. 8" inputmode="decimal">
+        <label>Verkaufsfläche (m²)</label>
+        <input id="verkaufsflaeche" placeholder="z. B. 250" inputmode="decimal">
+        <label>Umlaufvermögen (€)</label>
+        <input id="umlaufvermoegen" placeholder="z. B. 320.000" inputmode="decimal">
+        <label>Kurzfr. Verbindlichkeiten (€)</label>
+        <input id="kurzfristigeVerbindlichkeiten" placeholder="z. B. 210.000" inputmode="decimal">
+        <label>Operativer Cashflow (€)</label>
+        <input id="operativerCashflow" placeholder="z. B. 95.000" inputmode="decimal">
+      </div>
+    </div>
+
+    <h2>E-Commerce / Sonstiges</h2>
+    <div class="grid">
+      <div>
+        <label>Marketingkosten (€)</label>
+        <input id="marketingkosten" placeholder="z. B. 85.000" inputmode="decimal">
+        <label>Bestellungen (Anzahl)</label>
+        <input id="bestellungen" placeholder="z. B. 12.500" inputmode="decimal">
+      </div>
+      <div>
+        <label>Shopbesucher (Anzahl)</label>
+        <input id="shopbesucher" placeholder="z. B. 520.000" inputmode="decimal">
+        <label>Retouren (€)</label>
+        <input id="retouren" placeholder="z. B. 55.000" inputmode="decimal">
+      </div>
+    </div>
+
+    <div class="hr"></div>
+
+    <div class="row">
+      <button id="calc">Kennzahlen berechnen</button>
+      <div class="row">
+        <button class="secondary" id="pdf">PDF exportieren</button>
+      </div>
+    </div>
+
+    <div id="results" style="display:none;">
+      <div class="hr"></div>
+
+      <div class="sectionCard">
+        <div class="row">
+          <div>
+            <div class="muted">Gesamtscore (4 Bereiche je 25%)</div>
+            <div class="big" id="totalScore">—</div>
+            <div class="small" id="totalExplain">—</div>
+          </div>
+          <span class="badge" id="totalBadge">—</span>
+        </div>
+      </div>
+
+      <h2>Ergebnisse (Ampel + Bereichsscores)</h2>
+      <div class="kpiGrid" id="sections"></div>
+
+      <div class="note" style="margin-top:10px;">
+        Benchmarks & Gewichte sind im Code zentral definiert (oben im Script unter <span class="mono">CONFIG</span>).
+        Wenn du mir deine echten Benchmark-Grenzen gibst, passe ich sie dir 1:1 an.
+      </div>
+    </div>
+  </div>
 </div>
 
-<button onclick="berechnen()">Kennzahlen berechnen</button>
-<button onclick="exportPDF()">PDF-Report exportieren</button>
-
-<div id="output"></div>
-
 <script>
-let reportText = "";
+  const $ = (id) => document.getElementById(id);
 
-function score(wert, min, max) {
-  if (wert <= min) return 0;
-  if (wert >= max) return 100;
-  return ((wert - min) / (max - min)) * 100;
-}
+  // ========= Helpers =========
+  function num(id){
+    const raw = ($(id).value || "").toString().trim();
+    if(!raw) return 0;
+    const cleaned = raw.replace(/\s/g,"").replace(/\./g,"").replace(",",".");
+    const n = Number(cleaned);
+    return Number.isFinite(n) ? n : 0;
+  }
+  function safeDiv(a,b){ return b ? (a/b) : 0; }
+  function pct(x){ return x * 100; }
 
-function berechnen() {
+  function fmtEUR(n){
+    return n.toLocaleString("de-DE", {maximumFractionDigits:0});
+  }
+  function fmt(n, digits=2){
+    return n.toLocaleString("de-DE", {maximumFractionDigits:digits, minimumFractionDigits:digits});
+  }
 
-  const u = +umsatz.value;
-  const w = +wareneinsatz.value;
-  const e = +ebitda.value;
-  const j = +jahresueberschuss.value;
-  const ek = +eigenkapital.value;
-  const gk = +gesamtkapital.value;
-  const lb = +lagerbestand.value;
-  const pk = +personalkosten.value;
-  const ma = +mitarbeiter.value;
-  const vf = +verkaufsflaeche.value;
-  const uv = +umlaufvermoegen.value;
-  const vor = +vorräte.value;
-  const kv = +kurzfristigeVerbindlichkeiten.value;
-  const cf = +operativerCashflow.value;
-  const ford = +forderungen.value;
-  const mk = +marketingkosten.value;
-  const b = +bestellungen.value;
-  const s = +shopbesucher.value;
-  const r = +retouren.value;
+  // ========= Ampel & Scoring =========
+  // Benchmarks: red / yellow / green (Grenzen)
+  // type:
+  //  - "higherBetter": höher = besser
+  //  - "lowerBetter": niedriger = besser
+  function badgeFor(value, bm){
+    if (bm.type === "higherBetter"){
+      if (value >= bm.green) return {cls:"green", text:"Grün"};
+      if (value >= bm.yellow) return {cls:"yellow", text:"Gelb"};
+      return {cls:"red", text:"Rot"};
+    } else { // lowerBetter
+      if (value <= bm.green) return {cls:"green", text:"Grün"};
+      if (value <= bm.yellow) return {cls:"yellow", text:"Gelb"};
+      return {cls:"red", text:"Rot"};
+    }
+  }
 
-  let html = "<h2>Ergebnisse</h2>";
-  reportText = "Due-Diligence Report\n\n";
+  // Score 0..100 aus Benchmark (linear):
+  // higherBetter: <= red => 0, >= green => 100, dazwischen linear
+  // lowerBetter:  >= red => 0, <= green => 100, dazwischen linear
+  function scoreFromBenchmark(value, bm){
+    if (!Number.isFinite(value)) return 0;
 
-  const rohertrag = (u - w) / u * 100;
-  const luh = w / lb;
-  const ekq = ek / gk * 100;
-  const cr = b / s * 100;
+    if (bm.type === "higherBetter"){
+      if (value <= bm.red) return 0;
+      if (value >= bm.green) return 100;
+      return ((value - bm.red) / (bm.green - bm.red)) * 100;
+    } else {
+      if (value >= bm.red) return 0;
+      if (value <= bm.green) return 100;
+      return ((bm.red - value) / (bm.red - bm.green)) * 100;
+    }
+  }
 
-  const scoreRent = (
-    score(rohertrag, 20, 35) +
-    score(e / u * 100, 5, 15) +
-    score(j / u * 100, 3, 8) +
-    score(j / ek * 100, 10, 20)
-  ) / 4;
+  function totalBadgeFromScore(s){
+    // Gesamtscore Ampel: <60 rot, 60-75 gelb, >=75 grün
+    if (s >= 75) return {cls:"green", text:"Grün"};
+    if (s >= 60) return {cls:"yellow", text:"Gelb"};
+    return {cls:"red", text:"Rot"};
+  }
 
-  const scoreEff = (
-    score(luh, 2, 5) +
-    score(u / ma, 150000, 250000) +
-    score(u / vf, 3000, 6000)
-  ) / 3;
+  // ========= CONFIG (Benchmarks + Gewichte) =========
+  // 4 Bereiche = je 25% am Gesamtscore
+  // Innerhalb Bereich: Kennzahlen gewichtet (Summe muss NICHT 1 sein – wir normieren automatisch)
+  const CONFIG = {
+    sections: [
+      {
+        id: "rent",
+        name: "Rentabilität (25%)",
+        weightTotal: 0.25,
+        kpis: [
+          { id:"rohertrag", name:"Rohertrag", unit:"%", type:"pct",
+            benchmark:{type:"higherBetter", red:15, yellow:20, green:30},
+            weight: 0.30,
+            explain:"(Umsatz − Wareneinsatz) / Umsatz"
+          },
+          { id:"ebitdaMarge", name:"EBITDA-Marge", unit:"%", type:"pct",
+            benchmark:{type:"higherBetter", red:3, yellow:5, green:12},
+            weight: 0.30,
+            explain:"EBITDA / Umsatz"
+          },
+          { id:"nettoMarge", name:"Netto-Marge", unit:"%", type:"pct",
+            benchmark:{type:"higherBetter", red:1, yellow:2, green:6},
+            weight: 0.20,
+            explain:"Jahresüberschuss / Umsatz"
+          },
+          { id:"roi", name:"ROI", unit:"%", type:"pct",
+            benchmark:{type:"higherBetter", red:5, yellow:10, green:18},
+            weight: 0.20,
+            explain:"Jahresüberschuss / Eigenkapital"
+          }
+        ]
+      },
+      {
+        id: "eff",
+        name: "Effizienz (25%)",
+        weightTotal: 0.25,
+        kpis: [
+          { id:"lagerUmschlag", name:"Lagerumschlag", unit:"x", type:"num",
+            benchmark:{type:"higherBetter", red:1.5, yellow:2.0, green:4.0},
+            weight: 0.35,
+            explain:"Wareneinsatz / Ø Lagerbestand"
+          },
+          { id:"umsatzProMA", name:"Umsatz / MA", unit:"€", type:"eur0",
+            benchmark:{type:"higherBetter", red:120000, yellow:150000, green:230000},
+            weight: 0.35,
+            explain:"Umsatz / FTE"
+          },
+          { id:"umsatzProQM", name:"Umsatz / m²", unit:"€", type:"eur0",
+            benchmark:{type:"higherBetter", red:2500, yellow:3000, green:5500},
+            weight: 0.30,
+            explain:"Umsatz / Verkaufsfläche"
+          }
+        ]
+      },
+      {
+        id: "liq",
+        name: "Liquidität (25%)",
+        weightTotal: 0.25,
+        kpis: [
+          { id:"ekQuote", name:"EK-Quote", unit:"%", type:"pct",
+            benchmark:{type:"higherBetter", red:8, yellow:12, green:25},
+            weight: 0.35,
+            explain:"Eigenkapital / Gesamtkapital"
+          },
+          { id:"workingCapital", name:"Working Capital", unit:"€", type:"eur0",
+            benchmark:{type:"higherBetter", red:0, yellow:1, green:1}, // Platzhalter, wird dynamisch ersetzt
+            weight: 0.35,
+            explain:"Umlaufvermögen − kurzfr. Verbindlichkeiten"
+          },
+          { id:"cashflowQuote", name:"Cashflow-Quote", unit:"%", type:"pct",
+            benchmark:{type:"higherBetter", red:1, yellow:2, green:6},
+            weight: 0.30,
+            explain:"Operativer CF / Umsatz"
+          }
+        ]
+      },
+      {
+        id: "ecom",
+        name: "E-Commerce (25%)",
+        weightTotal: 0.25,
+        kpis: [
+          { id:"marketingQuote", name:"Marketingquote", unit:"%", type:"pct",
+            benchmark:{type:"lowerBetter", green:10, yellow:15, red:20},
+            weight: 0.25,
+            explain:"Marketingkosten / Umsatz"
+          },
+          { id:"conversion", name:"Conversion Rate", unit:"%", type:"pct",
+            benchmark:{type:"higherBetter", red:0.6, yellow:1.0, green:2.2},
+            weight: 0.35,
+            explain:"Bestellungen / Shopbesucher"
+          },
+          { id:"aov", name:"AOV (Ø Warenkorb)", unit:"€", type:"eur0",
+            benchmark:{type:"higherBetter", red:60, yellow:80, green:130},
+            weight: 0.20,
+            explain:"Umsatz / Bestellungen"
+          },
+          { id:"retourenQuote", name:"Retourenquote", unit:"%", type:"pct",
+            benchmark:{type:"lowerBetter", green:5, yellow:9, red:15},
+            weight: 0.20,
+            explain:"Retouren / Umsatz"
+          }
+        ]
+      }
+    ]
+  };
 
-  const scoreLiq = (
-    score(ekq, 10, 40) +
-    score((uv - kv), 0, u * 0.1) +
-    score(cf, 0, u * 0.1)
-  ) / 3;
+  // ========= Calculation =========
+  function computeKPIs() {
+    const u  = num("umsatz");
+    const w  = num("wareneinsatz");
+    const e  = num("ebitda");
+    const j  = num("jahresueberschuss");
+    const ek = num("eigenkapital");
+    const gk = num("gesamtkapital");
+    const lb = num("lagerbestand");
+    const ma = num("mitarbeiter");
+    const vf = num("verkaufsflaeche");
+    const uv = num("umlaufvermoegen");
+    const kv = num("kurzfristigeVerbindlichkeiten");
+    const cf = num("operativerCashflow");
+    const mk = num("marketingkosten");
+    const b  = num("bestellungen");
+    const s  = num("shopbesucher");
+    const r  = num("retouren");
 
-  const scoreEcom = (
-    score(15 - (mk / u * 100), 0, 15) +
-    score(cr, 1, 3) +
-    score(u / b, 100, 200)
-  ) / 3;
+    if (u <= 0) throw new Error("Bitte mindestens Umsatz > 0 eingeben.");
 
-  const totalScore =
-    scoreRent * 0.3 +
-    scoreEff * 0.25 +
-    scoreLiq * 0.25 +
-    scoreEcom * 0.2;
+    return {
+      input: {u,w,e,j,ek,gk,lb,ma,vf,uv,kv,cf,mk,b,s,r},
+      values: {
+        rohertrag: pct(safeDiv((u - w), u)),
+        ebitdaMarge: pct(safeDiv(e, u)),
+        nettoMarge: pct(safeDiv(j, u)),
+        roi: pct(safeDiv(j, ek)),
+        ekQuote: pct(safeDiv(ek, gk)),
+        lagerUmschlag: safeDiv(w, lb),
+        umsatzProMA: safeDiv(u, ma),
+        umsatzProQM: safeDiv(u, vf),
+        workingCapital: (uv - kv),
+        cashflowQuote: pct(safeDiv(cf, u)),
+        marketingQuote: pct(safeDiv(mk, u)),
+        conversion: pct(safeDiv(b, s)),
+        aov: safeDiv(u, b),
+        retourenQuote: pct(safeDiv(r, u))
+      }
+    };
+  }
 
-  let farbe = totalScore >= 75 ? "green" : totalScore >= 60 ? "orange" : "red";
+  function formatValue(val, type){
+    if (type === "pct") return `${fmt(val)} %`;
+    if (type === "eur0") return `${fmtEUR(val)} €`;
+    return `${fmt(val, 2)} ${type === "num" ? "" : ""}`.trim();
+  }
 
-  html += `<div class="scorebox ${farbe}">
-    Gesamtscore: ${totalScore.toFixed(1)} / 100
-  </div>`;
+  function buildKPIBox(kpi, value, badge, score){
+    const div = document.createElement("div");
+    div.className = "kpi";
+    div.innerHTML = `
+      <div>
+        <b>${kpi.name}</b>
+        <div class="big">${formatValue(value, kpi.type)}</div>
+        <div class="muted">${kpi.explain}</div>
+        <div class="small">Gewicht (Benchmark): <span class="mono">${kpi.weight}</span> • Score: <span class="mono">${score.toFixed(1)}</span>/100</div>
+      </div>
+      <span class="badge ${badge.cls}">${badge.text}</span>
+    `;
+    return div;
+  }
 
-  reportText += `Gesamtscore: ${totalScore.toFixed(1)} / 100\n`;
+  function calcAndRender(){
+    const { input, values } = computeKPIs();
 
-  output.innerHTML = html;
-}
+    // Dynamischer Benchmark für Working Capital abhängig vom Umsatz:
+    // Idee: Grün ab 5% Umsatz, Rot bei <=0, Gelb dazwischen
+    // (kannst du später leicht ändern)
+    const wcGreen = input.u * 0.05;
+    const liqSection = CONFIG.sections.find(s => s.id === "liq");
+    const wcKpi = liqSection.kpis.find(k => k.id === "workingCapital");
+    wcKpi.benchmark = { type:"higherBetter", red:0, yellow:(wcGreen * 0.5), green:wcGreen };
 
-function exportPDF() {
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF();
-  doc.text(reportText || "Bitte zuerst Kennzahlen berechnen.", 10, 10);
-  doc.save("Due-Diligence-Report.pdf");
-}
+    const sectionsDiv = $("sections");
+    sectionsDiv.innerHTML = "";
+
+    const reportLines = [];
+    reportLines.push("Due-Diligence KPI Report");
+    reportLines.push(new Date().toLocaleString("de-DE"));
+    reportLines.push("");
+    reportLines.push("Eingaben:");
+    reportLines.push(`Umsatz: ${fmtEUR(input.u)} €`);
+    reportLines.push(`Wareneinsatz: ${fmtEUR(input.w)} €`);
+    reportLines.push(`EBITDA: ${fmtEUR(input.e)} €`);
+    reportLines.push(`Jahresüberschuss: ${fmtEUR(input.j)} €`);
+    reportLines.push(`Eigenkapital: ${fmtEUR(input.ek)} €`);
+    reportLines.push(`Gesamtkapital: ${fmtEUR(input.gk)} €`);
+    reportLines.push("");
+
+    let totalScore = 0;
+
+    CONFIG.sections.forEach(sec => {
+      let sumW = 0;
+      let sumScoreW = 0;
+
+      const secCard = document.createElement("div");
+      secCard.className = "sectionCard";
+
+      const kpiList = document.createElement("div");
+      kpiList.className = "kpiGrid";
+
+      reportLines.push(sec.name);
+
+      sec.kpis.forEach(kpi => {
+        const v = values[kpi.id];
+        const sc = scoreFromBenchmark(v, kpi.benchmark);
+        const bd = badgeFor(v, kpi.benchmark);
+
+        sumW += kpi.weight;
+        sumScoreW += sc * kpi.weight;
+
+        kpiList.appendChild(buildKPIBox(kpi, v, bd, sc));
+
+        reportLines.push(`- ${kpi.name}: ${formatValue(v, kpi.type)} | Ampel: ${bd.text} | Score: ${sc.toFixed(1)}/100 | Gewicht: ${kpi.weight}`);
+      });
+
+      const secScore = sumW ? (sumScoreW / sumW) : 0;
+      const secBadge = totalBadgeFromScore(secScore);
+
+      totalScore += secScore * sec.weightTotal;
+
+      const head = document.createElement("div");
+      head.className = "row";
+      head.innerHTML = `
+        <div>
+          <div class="muted">${sec.name}</div>
+          <div class="big">${secScore.toFixed(1)} / 100</div>
+          <div class="small">Bereich zählt fix <b>25%</b> zum Gesamtscore. KPIs sind benchmark-gewichtet.</div>
+        </div>
+        <span class="badge ${secBadge.cls}">${secBadge.text}</span>
+      `;
+
+      secCard.appendChild(head);
+      secCard.appendChild(document.createElement("div")).className = "hr";
+      secCard.appendChild(kpiList);
+
+      sectionsDiv.appendChild(secCard);
+
+      reportLines.push(`Bereichsscore: ${secScore.toFixed(1)} / 100`);
+      reportLines.push("");
+    });
+
+    const total = totalScore; // bereits über 25%-Gewichte gemischt (Summe 1.0)
+    const tb = totalBadgeFromScore(total);
+
+    $("totalScore").textContent = `${total.toFixed(1)} / 100`;
+    $("totalBadge").className = `badge ${tb.cls}`;
+    $("totalBadge").textContent = tb.text;
+    $("totalExplain").textContent = "Gesamt = Durchschnitt der 4 Bereichsscores (je 25%)";
+
+    $("results").style.display = "block";
+
+    // PDF-Text für Export speichern
+    window.__REPORT_TEXT__ = reportLines.join("\n");
+  }
+
+  // ========= PDF Export =========
+  function exportPDF(){
+    const text = window.__REPORT_TEXT__ || "Bitte zuerst Kennzahlen berechnen.";
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ unit:"mm", format:"a4" });
+
+    const margin = 10;
+    const maxWidth = 190;
+    const lines = doc.splitTextToSize(text, maxWidth);
+
+    let y = 12;
+    const lineHeight = 6;
+
+    lines.forEach(line => {
+      if (y > 285) { doc.addPage(); y = 12; }
+      doc.text(line, margin, y);
+      y += lineHeight;
+    });
+
+    doc.save(`Due-Diligence_KPI_Report_${new Date().toISOString().slice(0,10)}.pdf`);
+  }
+
+  // ========= UI Events =========
+  $("calc").addEventListener("click", () => {
+    try { calcAndRender(); }
+    catch (e) { alert(e.message || "Fehler bei der Berechnung."); }
+  });
+
+  $("pdf").addEventListener("click", () => {
+    try { exportPDF(); }
+    catch { alert("PDF-Export fehlgeschlagen. Bitte erneut versuchen."); }
+  });
+
+  $("reset").addEventListener("click", () => {
+    document.querySelectorAll("input").forEach(i => i.value = "");
+    $("results").style.display = "none";
+    window.__REPORT_TEXT__ = "";
+  });
+
+  $("fillDemo").addEventListener("click", () => {
+    $("umsatz").value = "1.250.000";
+    $("wareneinsatz").value = "720.000";
+    $("ebitda").value = "140.000";
+    $("jahresueberschuss").value = "70.000";
+    $("eigenkapital").value = "280.000";
+    $("gesamtkapital").value = "900.000";
+    $("lagerbestand").value = "180.000";
+    $("mitarbeiter").value = "8";
+    $("verkaufsflaeche").value = "250";
+    $("umlaufvermoegen").value = "320.000";
+    $("kurzfristigeVerbindlichkeiten").value = "210.000";
+    $("operativerCashflow").value = "95.000";
+    $("marketingkosten").value = "85.000";
+    $("bestellungen").value = "12.500";
+    $("shopbesucher").value = "520.000";
+    $("retouren").value = "55.000";
+  });
 </script>
-
 </body>
 </html>
