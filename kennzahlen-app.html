@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Unternehmens-KPI & Due-Diligence Tool</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  max-width: 1200px;
+  margin: 30px auto;
+}
+h2 {
+  border-bottom: 1px solid #ccc;
+  margin-top: 40px;
+}
+input {
+  width: 100%;
+  padding: 6px;
+  margin-bottom: 8px;
+}
+button {
+  padding: 12px;
+  width: 100%;
+  font-size: 16px;
+  margin-top: 20px;
+}
+.result {
+  font-weight: bold;
+  margin: 4px 0;
+}
+.green { color: green; }
+.orange { color: orange; }
+.red { color: red; }
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+.scorebox {
+  font-size: 26px;
+  margin-top: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Due-Diligence KPI Tool</h1>
+
+<h2>Grunddaten</h2>
+<div class="grid">
+<input id="umsatz" placeholder="Umsatz €">
+<input id="wareneinsatz" placeholder="Wareneinsatz €">
+<input id="ebitda" placeholder="EBITDA €">
+<input id="jahresueberschuss" placeholder="Jahresüberschuss €">
+<input id="eigenkapital" placeholder="Eigenkapital €">
+<input id="gesamtkapital" placeholder="Gesamtkapital €">
+<input id="lagerbestand" placeholder="Ø Lagerbestand €">
+<input id="personalkosten" placeholder="Personalkosten €">
+<input id="mitarbeiter" placeholder="Mitarbeiter (FTE)">
+<input id="verkaufsflaeche" placeholder="Verkaufsfläche m²">
+<input id="umlaufvermoegen" placeholder="Umlaufvermögen €">
+<input id="vorräte" placeholder="Vorräte €">
+<input id="kurzfristigeVerbindlichkeiten" placeholder="kurzfr. Verbindlichkeiten €">
+<input id="operativerCashflow" placeholder="Operativer Cashflow €">
+<input id="forderungen" placeholder="Forderungen aus L+L €">
+<input id="marketingkosten" placeholder="Marketingkosten €">
+<input id="bestellungen" placeholder="Bestellungen">
+<input id="shopbesucher" placeholder="Shopbesucher">
+<input id="retouren" placeholder="Retouren €">
+</div>
+
+<button onclick="berechnen()">Kennzahlen berechnen</button>
+<button onclick="exportPDF()">PDF-Report exportieren</button>
+
+<div id="output"></div>
+
+<script>
+let reportText = "";
+
+function score(wert, min, max) {
+  if (wert <= min) return 0;
+  if (wert >= max) return 100;
+  return ((wert - min) / (max - min)) * 100;
+}
+
+function berechnen() {
+
+  const u = +umsatz.value;
+  const w = +wareneinsatz.value;
+  const e = +ebitda.value;
+  const j = +jahresueberschuss.value;
+  const ek = +eigenkapital.value;
+  const gk = +gesamtkapital.value;
+  const lb = +lagerbestand.value;
+  const pk = +personalkosten.value;
+  const ma = +mitarbeiter.value;
+  const vf = +verkaufsflaeche.value;
+  const uv = +umlaufvermoegen.value;
+  const vor = +vorräte.value;
+  const kv = +kurzfristigeVerbindlichkeiten.value;
+  const cf = +operativerCashflow.value;
+  const ford = +forderungen.value;
+  const mk = +marketingkosten.value;
+  const b = +bestellungen.value;
+  const s = +shopbesucher.value;
+  const r = +retouren.value;
+
+  let html = "<h2>Ergebnisse</h2>";
+  reportText = "Due-Diligence Report\n\n";
+
+  const rohertrag = (u - w) / u * 100;
+  const luh = w / lb;
+  const ekq = ek / gk * 100;
+  const cr = b / s * 100;
+
+  const scoreRent = (
+    score(rohertrag, 20, 35) +
+    score(e / u * 100, 5, 15) +
+    score(j / u * 100, 3, 8) +
+    score(j / ek * 100, 10, 20)
+  ) / 4;
+
+  const scoreEff = (
+    score(luh, 2, 5) +
+    score(u / ma, 150000, 250000) +
+    score(u / vf, 3000, 6000)
+  ) / 3;
+
+  const scoreLiq = (
+    score(ekq, 10, 40) +
+    score((uv - kv), 0, u * 0.1) +
+    score(cf, 0, u * 0.1)
+  ) / 3;
+
+  const scoreEcom = (
+    score(15 - (mk / u * 100), 0, 15) +
+    score(cr, 1, 3) +
+    score(u / b, 100, 200)
+  ) / 3;
+
+  const totalScore =
+    scoreRent * 0.3 +
+    scoreEff * 0.25 +
+    scoreLiq * 0.25 +
+    scoreEcom * 0.2;
+
+  let farbe = totalScore >= 75 ? "green" : totalScore >= 60 ? "orange" : "red";
+
+  html += `<div class="scorebox ${farbe}">
+    Gesamtscore: ${totalScore.toFixed(1)} / 100
+  </div>`;
+
+  reportText += `Gesamtscore: ${totalScore.toFixed(1)} / 100\n`;
+
+  output.innerHTML = html;
+}
+
+function exportPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.text(reportText || "Bitte zuerst Kennzahlen berechnen.", 10, 10);
+  doc.save("Due-Diligence-Report.pdf");
+}
+</script>
+
+</body>
+</html>
