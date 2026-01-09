@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Due-Diligence KPI App (Hybrid) – v7.1</title>
+  <title>Due-Diligence KPI App (Hybrid) – v7.2</title>
 
   <!-- PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -90,7 +90,7 @@
         <div class="sub">Hybrid-Benchmark · KPIs + Ampel · Trend · Vergleich · PDF · Backup</div>
       </div>
       <div class="left">
-        <span class="pill">v7.1</span>
+        <span class="pill">v7.2</span>
         <button class="btn ghost" id="btnDemo">Demo-Werte</button>
         <button class="btn secondary" id="btnReset">Reset</button>
       </div>
@@ -112,7 +112,7 @@
         <div class="box">
           <label>Umsatz (€)</label>
           <input id="u" inputmode="decimal" placeholder="z. B. 1.250.000">
-          <div class="need"><b>Benötigt für:</b> Rentabilität → Rohertrag, EBITDA-Marge, Netto-Marge, ROI · Effizienz → Umsatz/MA, Umsatz/m² · Liquidität → Cashflow-Quote, WC-Benchmark · E-Commerce → Marketingquote, AOV, Retourenquote</div>
+          <div class="need"><b>Benötigt für:</b> Rentabilität → Rohertrag, EBITDA-Marge, Netto-Marge, ROI · Effizienz → Umsatz/MA, Umsatz/m², Personalkostenquote · Liquidität → Cashflow-Quote, WC-Benchmark · E-Commerce → Marketingquote, AOV, Retourenquote</div>
 
           <label>Wareneinsatz (€)</label>
           <input id="w" inputmode="decimal" placeholder="z. B. 720.000">
@@ -142,7 +142,11 @@
 
           <label>Mitarbeiter (FTE)</label>
           <input id="ma" inputmode="decimal" placeholder="z. B. 12">
-          <div class="need"><b>Benötigt für:</b> Effizienz → Umsatz/MA</div>
+          <div class="need"><b>Benötigt für:</b> Effizienz → Umsatz/MA, Personalkosten/MA</div>
+
+          <label>Personalkosten (€)</label>
+          <input id="pk" inputmode="decimal" placeholder="z. B. 420.000">
+          <div class="need"><b>Benötigt für:</b> Effizienz → Personalkosten/MA, Personalkostenquote</div>
 
           <label>Verkaufsfläche (m²)</label>
           <input id="vf" inputmode="decimal" placeholder="z. B. 250">
@@ -196,7 +200,7 @@
           <button class="btn" id="btnCalc">Berechnen</button>
           <button class="btn secondary" id="btnPDF">PDF-Report</button>
         </div>
-        <div class="small" id="calcInfo">Hybrid-Benchmark aktiv (Logistik + Onlinehandel).</div>
+        <div class="small">Hybrid-Benchmark aktiv (Logistik + Onlinehandel).</div>
       </div>
 
       <div id="validation" class="hint"></div>
@@ -320,8 +324,8 @@
    Storage
    ========================================================= */
 const STORE = {
-  periods: "ddkpi_periods_v71",
-  lastInputs: "ddkpi_inputs_v71"
+  periods: "ddkpi_periods_v72",
+  lastInputs: "ddkpi_inputs_v72"
 };
 const $ = (id)=>document.getElementById(id);
 
@@ -390,19 +394,28 @@ function interpFromScore(score){
 }
 
 const BENCH = {
+  // Rentabilität
   grossMargin: {red:18, yellow:25, green:35},
   ebitdaMargin: {red:4, yellow:8, green:15},
   netMargin: {red:1, yellow:3, green:8},
   roi: {red:6, yellow:12, green:20},
 
+  // Effizienz (Logistik)
   invTurn: {red:1.5, yellow:2.5, green:5.0},
   revPerFTE: {red:100000, yellow:150000, green:250000},
   revPerM2: {red:2500, yellow:3500, green:6000},
 
+  // NEU: Personal (Effizienz)
+  // (lowerBetter: geringere Kosten pro MA sind besser)
+  payrollPerFTE: {green:35000, yellow:50000, red:70000},   // €/FTE/Jahr
+  payrollPctSales: {green:12, yellow:18, red:28},          // %
+
+  // Liquidität
   equityRatio: {red:8, yellow:15, green:35},
   wcPctSales: {red:-5, yellow:2, green:10},
   cfPctSales: {red:0, yellow:3, green:10},
 
+  // E-Commerce
   marketingPctSales: {green:6, yellow:10, red:18},
   conversion: {red:0.8, yellow:1.5, green:3.0},
   aov: {red:60, yellow:100, green:200},
@@ -413,7 +426,7 @@ const BENCH = {
    KPI Calculation
    ========================================================= */
 function readInputs(){
-  const ids = ["u","w","e","j","ek","gk","lb","ma","vf","uv","kv","cf","mk","s","b","r"];
+  const ids = ["u","w","e","j","ek","gk","lb","ma","pk","vf","uv","kv","cf","mk","s","b","r"];
   const o = {};
   ids.forEach(id=>o[id]=toNum($(id).value));
   return o;
@@ -429,29 +442,36 @@ function loadInputsFromLocal(){
 
 function validateForKPIs(inp){
   const missing = [];
-  const need = (key,label)=>{ if(inp[key]===null) missing.push(label); };
-  need("u","Umsatz");
+  if(inp.u===null) missing.push("Umsatz");
   return missing;
 }
 
 function calcKPIs(inp){
-  const u=inp.u, w=inp.w, e=inp.e, j=inp.j, ek=inp.ek, gk=inp.gk, lb=inp.lb, ma=inp.ma, vf=inp.vf;
+  const u=inp.u, w=inp.w, e=inp.e, j=inp.j, ek=inp.ek, gk=inp.gk, lb=inp.lb, ma=inp.ma, pk=inp.pk, vf=inp.vf;
   const uv=inp.uv, kv=inp.kv, cf=inp.cf, mk=inp.mk, s=inp.s, b=inp.b, r=inp.r;
 
+  // Rentabilität
   const grossMargin = (u!==null && w!==null && u!==0) ? ((u-w)/u*100) : null;
   const ebitdaMargin = (u!==null && e!==null && u!==0) ? (e/u*100) : null;
   const netMargin = (u!==null && j!==null && u!==0) ? (j/u*100) : null;
   const roi = (ek!==null && j!==null && ek!==0) ? (j/ek*100) : null;
 
+  // Effizienz
   const invTurn = (w!==null && lb!==null && lb!==0) ? (w/lb) : null;
   const revPerFTE = (u!==null && ma!==null && ma!==0) ? (u/ma) : null;
   const revPerM2 = (u!==null && vf!==null && vf!==0) ? (u/vf) : null;
 
+  // NEU: Personal (Effizienz)
+  const payrollPerFTE = (pk!==null && ma!==null && ma!==0) ? (pk/ma) : null;
+  const payrollPctSales = (pk!==null && u!==null && u!==0) ? (pk/u*100) : null;
+
+  // Liquidität
   const equityRatio = (ek!==null && gk!==null && gk!==0) ? (ek/gk*100) : null;
   const wc = (uv!==null && kv!==null) ? (uv-kv) : null;
   const wcPctSales = (u!==null && wc!==null && u!==0) ? (wc/u*100) : null;
   const cfPctSales = (u!==null && cf!==null && u!==0) ? (cf/u*100) : null;
 
+  // E-Commerce
   const marketingPctSales = (u!==null && mk!==null && u!==0) ? (mk/u*100) : null;
   const conversion = (s!==null && b!==null && s!==0) ? (b/s*100) : null;
   const aov = (u!==null && b!==null && b!==0) ? (u/b) : null;
@@ -459,13 +479,14 @@ function calcKPIs(inp){
 
   return {
     rent: { grossMargin, ebitdaMargin, netMargin, roi },
-    eff: { invTurn, revPerFTE, revPerM2 },
-    liq: { equityRatio, wcPctSales, cfPctSales },
-    ecom:{ marketingPctSales, conversion, aov, returnsPctSales }
+    eff:  { invTurn, revPerFTE, revPerM2, payrollPerFTE, payrollPctSales },
+    liq:  { equityRatio, wcPctSales, cfPctSales },
+    ecom: { marketingPctSales, conversion, aov, returnsPctSales }
   };
 }
 
 function scoreAll(k){
+  // KPI scores
   const sRent = {
     grossMargin: scoreFromBench(k.rent.grossMargin, BENCH.grossMargin,"higherBetter"),
     ebitdaMargin: scoreFromBench(k.rent.ebitdaMargin, BENCH.ebitdaMargin,"higherBetter"),
@@ -476,6 +497,9 @@ function scoreAll(k){
     invTurn: scoreFromBench(k.eff.invTurn, BENCH.invTurn,"higherBetter"),
     revPerFTE: scoreFromBench(k.eff.revPerFTE, BENCH.revPerFTE,"higherBetter"),
     revPerM2: scoreFromBench(k.eff.revPerM2, BENCH.revPerM2,"higherBetter"),
+    // NEW (lower is better)
+    payrollPerFTE: scoreFromBench(k.eff.payrollPerFTE, BENCH.payrollPerFTE,"lowerBetter"),
+    payrollPctSales: scoreFromBench(k.eff.payrollPctSales, BENCH.payrollPctSales,"lowerBetter"),
   };
   const sLiq = {
     equityRatio: scoreFromBench(k.liq.equityRatio, BENCH.equityRatio,"higherBetter"),
@@ -496,7 +520,7 @@ function scoreAll(k){
   };
 
   const rentScore = avg(Object.values(sRent));
-  const effScore = avg(Object.values(sEff));
+  const effScore = avg(Object.values(sEff));        // still 25% overall
   const liqScore = avg(Object.values(sLiq));
   const ecomScore = avg(Object.values(sEcom));
   const total = avg([rentScore, effScore, liqScore, ecomScore]); // 25% each
@@ -510,7 +534,7 @@ function scoreAll(k){
 /* =========================================================
    Rendering: Results
    ========================================================= */
-function renderResults(inp, kpis, scoring){
+function renderResults(kpis, scoring){
   const A = scoring.areaScores;
   const K = kpis;
   const S = scoring.kpiScores;
@@ -572,7 +596,9 @@ function renderResults(inp, kpis, scoring){
       ${areaCard("Effizienz","var(--eff)",A.eff,
         kpiLine("Lagerumschlag", fmtNum(K.eff.invTurn,1), S.eff.invTurn)+
         kpiLine("Umsatz / MA", fmtEUR(K.eff.revPerFTE), S.eff.revPerFTE)+
-        kpiLine("Umsatz / m²", fmtEUR(K.eff.revPerM2), S.eff.revPerM2)
+        kpiLine("Umsatz / m²", fmtEUR(K.eff.revPerM2), S.eff.revPerM2)+
+        kpiLine("Personalkosten / MA", fmtEUR(K.eff.payrollPerFTE), S.eff.payrollPerFTE)+
+        kpiLine("Personalkostenquote", fmtPct(K.eff.payrollPctSales), S.eff.payrollPctSales)
       )}
 
       ${areaCard("Liquidität","var(--liq)",A.liq,
@@ -592,7 +618,7 @@ function renderResults(inp, kpis, scoring){
 }
 
 /* =========================================================
-   Periods: Save/List/Trend/Compare
+   Periods / Trend / Compare / Backup (unchanged logic)
    ========================================================= */
 function getPeriods(){ return readJSON(STORE.periods, []); }
 function setPeriods(p){ writeJSON(STORE.periods, p); }
@@ -665,14 +691,8 @@ function savePeriod(){
   alert("Zeitraum gespeichert.");
 }
 
-/* =========================================================
-   Trend Chart
-   ========================================================= */
 function getCSS(varName){ return getComputedStyle(document.documentElement).getPropertyValue(varName); }
-
-function getTrendData(type){
-  return getPeriods().filter(x=>x.type===type).sort((a,b)=>a.label.localeCompare(b.label));
-}
+function getTrendData(type){ return getPeriods().filter(x=>x.type===type).sort((a,b)=>a.label.localeCompare(b.label)); }
 
 function drawTrend(){
   const type = $("trendType").value;
@@ -781,9 +801,6 @@ function renderWarnings(data){
   }
 }
 
-/* =========================================================
-   Compare
-   ========================================================= */
 function renderCompareSelects(){
   const all = getPeriods().slice().sort((a,b)=>(a.type+a.label).localeCompare(b.type+b.label));
   const toOpt = (x)=>`<option value="${x.id}">${x.type} ${x.label} · Gesamt ${x.scores.total.toFixed(1)}</option>`;
@@ -817,6 +834,8 @@ function runCompare(){
     add("eff","invTurn","Lagerumschlag (x)");
     add("eff","revPerFTE","Umsatz/MA (€)");
     add("eff","revPerM2","Umsatz/m² (€)");
+    add("eff","payrollPerFTE","Personalkosten/MA (€)");
+    add("eff","payrollPctSales","Personalkostenquote (%)");
 
     add("liq","equityRatio","Eigenkapitalquote (%)");
     add("liq","wcPctSales","WC/Umsatz (%)");
@@ -857,147 +876,18 @@ function runCompare(){
           <div class="mini"><b>${A.type} ${A.label}</b> → <b>${B.type} ${B.label}</b></div>
         </div>
       </div>
-      <div class="kpiRow">
-        <div><b>Gesamt</b></div>
-        <div class="kpiRight">
-          <span class="small">${A.scores.total.toFixed(1)} → ${B.scores.total.toFixed(1)}</span>
-          <span class="badge ${badgeFromScore(B.scores.total).cls}">${badgeFromScore(B.scores.total).txt}</span>
-        </div>
-      </div>
 
       <h3>Top 3 Verbesserungen</h3>
       <ul>${up.map(row).join("")}</ul>
 
       <h3>Top 3 Verschlechterungen</h3>
       <ul>${down.map(row).join("")}</ul>
-
-      <div class="hint">Top-Treiber basieren auf KPI-Score-Änderungen (Benchmark-basiert).</div>
     </div>
   `;
 }
 
-/* =========================================================
-   PDF Export (kompakt)
-   ========================================================= */
-function exportPDF(){
-  if(!CURRENT){ alert("Bitte zuerst berechnen."); return; }
-
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({unit:"pt", format:"a4"});
-  const W = doc.internal.pageSize.getWidth();
-  const H = doc.internal.pageSize.getHeight();
-  const now = new Date().toLocaleString("de-DE");
-
-  const addTitle = (t, y)=>{
-    doc.setFont("helvetica","bold"); doc.setFontSize(18);
-    doc.text(t, 40, y);
-  };
-  const addSmall = (t, y)=>{
-    doc.setFont("helvetica","normal"); doc.setFontSize(11);
-    doc.text(t, 40, y);
-  };
-
-  addTitle("Due-Diligence KPI Report", 70);
-  addSmall("Hybrid-Benchmark (Marke + interne Logistik)", 92);
-  addSmall(`Erstellt: ${now}`, 112);
-
-  const total = CURRENT.scoring.areaScores.total;
-  doc.setFont("helvetica","bold"); doc.setFontSize(16);
-  doc.text(`Gesamtscore: ${total===null?"n/a":total.toFixed(1)} / 100`, 40, 155);
-  doc.setFont("helvetica","normal"); doc.setFontSize(12);
-  doc.text(`Interpretation: ${interpFromScore(total)}`, 40, 178);
-
-  // Trend page with embedded chart
-  doc.addPage();
-  addTitle("Trend", 70);
-  addSmall(`Ansicht: ${$("trendType").value}`, 92);
-  drawTrend();
-  try{
-    const canvas = $("trendCanvas");
-    const img = canvas.toDataURL("image/png", 1.0);
-    const imgW = W-80;
-    const imgH = imgW * (canvas.height/canvas.width);
-    doc.addImage(img, "PNG", 40, 120, imgW, Math.min(imgH, 420));
-  }catch(e){
-    addSmall("Trendgrafik konnte nicht eingebettet werden.", 140);
-  }
-
-  // Area pages
-  const areaPage = (title, rows)=>{
-    doc.addPage();
-    addTitle(title, 70);
-    doc.setFont("helvetica","normal"); doc.setFontSize(11);
-    doc.text("KPIs + Ampel", 40, 92);
-
-    let y=130;
-    rows.forEach(r=>{
-      doc.setFont("helvetica","bold"); doc.setFontSize(12);
-      doc.text(r.name, 40, y);
-      doc.setFont("helvetica","normal");
-      doc.text(String(r.value), 260, y);
-      doc.text(String(r.ampel), 500, y);
-      y+=22;
-      if(y>H-60){ doc.addPage(); y=80; }
-    });
-  };
-
-  const K = CURRENT.kpis;
-  const S = CURRENT.scoring.kpiScores;
-
-  areaPage("Rentabilität (25%)", [
-    {name:"Rohertrag", value:fmtPct(K.rent.grossMargin), ampel:badgeFromScore(S.rent.grossMargin).txt},
-    {name:"EBITDA-Marge", value:fmtPct(K.rent.ebitdaMargin), ampel:badgeFromScore(S.rent.ebitdaMargin).txt},
-    {name:"Netto-Marge", value:fmtPct(K.rent.netMargin), ampel:badgeFromScore(S.rent.netMargin).txt},
-    {name:"ROI", value:fmtPct(K.rent.roi), ampel:badgeFromScore(S.rent.roi).txt},
-  ]);
-  areaPage("Effizienz (25%)", [
-    {name:"Lagerumschlag", value:fmtNum(K.eff.invTurn,1), ampel:badgeFromScore(S.eff.invTurn).txt},
-    {name:"Umsatz / MA", value:fmtEUR(K.eff.revPerFTE), ampel:badgeFromScore(S.eff.revPerFTE).txt},
-    {name:"Umsatz / m²", value:fmtEUR(K.eff.revPerM2), ampel:badgeFromScore(S.eff.revPerM2).txt},
-  ]);
-  areaPage("Liquidität (25%)", [
-    {name:"Eigenkapitalquote", value:fmtPct(K.liq.equityRatio), ampel:badgeFromScore(S.liq.equityRatio).txt},
-    {name:"Working Capital / Umsatz", value:fmtPct(K.liq.wcPctSales), ampel:badgeFromScore(S.liq.wcPctSales).txt},
-    {name:"Cashflow-Quote", value:fmtPct(K.liq.cfPctSales), ampel:badgeFromScore(S.liq.cfPctSales).txt},
-  ]);
-  areaPage("E-Commerce (25%)", [
-    {name:"Marketingquote", value:fmtPct(K.ecom.marketingPctSales), ampel:badgeFromScore(S.ecom.marketingPctSales).txt},
-    {name:"Conversion", value:fmtPct(K.ecom.conversion), ampel:badgeFromScore(S.ecom.conversion).txt},
-    {name:"AOV", value:fmtEUR(K.ecom.aov), ampel:badgeFromScore(S.ecom.aov).txt},
-    {name:"Retourenquote", value:fmtPct(K.ecom.returnsPctSales), ampel:badgeFromScore(S.ecom.returnsPctSales).txt},
-  ]);
-
-  doc.save("Due-Diligence-KPI-Report.pdf");
-}
-
-function exportTrendPDF(){
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({unit:"pt", format:"a4"});
-  const W = doc.internal.pageSize.getWidth();
-
-  drawTrend();
-  const canvas = $("trendCanvas");
-  const img = canvas.toDataURL("image/png", 1.0);
-
-  doc.setFont("helvetica","bold"); doc.setFontSize(16);
-  doc.text("Trend (Hybrid)", 40, 60);
-  doc.setFont("helvetica","normal"); doc.setFontSize(11);
-  doc.text(`Ansicht: ${$("trendType").value}`, 40, 80);
-
-  const imgW = W-80;
-  const imgH = imgW*(canvas.height/canvas.width);
-  doc.addImage(img,"PNG",40,110,imgW,Math.min(imgH,520));
-  doc.save("Trend.pdf");
-}
-
-/* =========================================================
-   Backup / Import
-   ========================================================= */
 function exportBackup(){
-  const payload = {
-    periods: getPeriods(),
-    inputs: readJSON(STORE.lastInputs, {})
-  };
+  const payload = { periods: getPeriods(), inputs: readJSON(STORE.lastInputs, {}) };
   const blob = new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
@@ -1024,7 +914,7 @@ function importBackup(file){
 }
 
 /* =========================================================
-   Period UI (AUTO LABEL)
+   Auto-Label UI
    ========================================================= */
 function pad2(n){ return String(n).padStart(2,"0"); }
 
@@ -1032,31 +922,26 @@ function initPeriodSelectors(){
   const now = new Date();
   const thisYear = now.getFullYear();
 
-  // Years: thisYear-5 .. thisYear+2
   const years = [];
   for(let y=thisYear-5; y<=thisYear+2; y++) years.push(y);
   $("pyear").innerHTML = years.map(y=>`<option value="${y}">${y}</option>`).join("");
   $("pyear").value = String(thisYear);
 
-  // Months
   const mNames = ["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
   $("pmonth").innerHTML = mNames.map((n,i)=>`<option value="${i+1}">${n}</option>`).join("");
   $("pmonth").value = String(now.getMonth()+1);
 
-  // Quarter from current month
   const q = Math.floor(now.getMonth()/3)+1;
   $("pquarter").value = "Q"+q;
 
   updatePeriodUI();
   updateAutoLabel();
 }
-
 function updatePeriodUI(){
   const type = $("ptype").value;
   $("monthWrap").style.display = (type==="Monat") ? "" : "none";
   $("quarterWrap").style.display = (type==="Quartal") ? "" : "none";
 }
-
 function updateAutoLabel(){
   const type = $("ptype").value;
   const year = $("pyear").value;
@@ -1065,9 +950,9 @@ function updateAutoLabel(){
   if(type==="Jahr"){
     label = `${year}`;
   } else if(type==="Quartal"){
-    const q = $("pquarter").value; // Q1..Q4
+    const q = $("pquarter").value;
     label = `${year}-${q}`;
-  } else { // Monat
+  } else {
     const m = pad2(Number($("pmonth").value));
     label = `${year}-${m}`;
   }
@@ -1083,18 +968,17 @@ function calculate(){
   const inp = readInputs();
   saveInputsToLocal();
 
-  const miss = validateForKPIs(inp);
   const more = [];
   if(inp.u===null) more.push("⚠️ Umsatz fehlt → mehrere KPIs nicht berechenbar.");
   if(inp.b===0) more.push("⚠️ Bestellungen = 0 → AOV nicht berechenbar.");
   if(inp.s===0) more.push("⚠️ Shopbesucher = 0 → Conversion nicht berechenbar.");
-  $("validation").innerHTML = [...more].join("<br>");
+  $("validation").innerHTML = more.join("<br>");
 
   const kpis = calcKPIs(inp);
   const scoring = scoreAll(kpis);
   CURRENT = { inp, kpis, scoring };
 
-  renderResults(inp, kpis, scoring);
+  renderResults(kpis, scoring);
   switchTab("results");
 }
 
@@ -1112,7 +996,7 @@ function switchTab(id){
 function setDemo(){
   const demo = {
     u:1250000, w:720000, e:140000, j:70000,
-    ek:280000, gk:900000, lb:250000, ma:12, vf:250,
+    ek:280000, gk:900000, lb:250000, ma:12, pk:420000, vf:250,
     uv:320000, kv:210000, cf:95000,
     mk:85000, s:520000, b:12500, r:55000
   };
@@ -1143,7 +1027,6 @@ document.querySelectorAll(".tabbtn").forEach(b=>b.onclick=()=>switchTab(b.datase
 
 $("btnCalc").onclick = calculate;
 $("btnPDF").onclick = exportPDF;
-$("btnTrendPDF").onclick = exportTrendPDF;
 
 $("btnSavePeriod").onclick = savePeriod;
 $("btnClearPeriods").onclick = clearPeriods;
