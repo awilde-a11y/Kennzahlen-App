@@ -3,52 +3,81 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Due-Diligence KPI App – v7.1 (Hybrid)</title>
+  <title>Due-Diligence KPI App (Hybrid) – v7.1</title>
 
   <!-- PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
   <style>
-    /* ====== BASIC ====== */
     :root{
       font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
       --bg:#f6f7fb; --card:#fff; --text:#111; --muted:#666; --border:#e9ecf5;
       --green:#1c7c2f; --yellow:#8a5a00; --red:#b00020;
+
       --rent:#2f6fff; --eff:#f2b400; --liq:#2bb673; --ecom:#8a5cf6;
     }
+    *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--text)}
     .wrap{max-width:1200px;margin:auto;padding:18px}
     .card{background:var(--card);border-radius:18px;box-shadow:0 6px 18px rgba(0,0,0,.06);padding:16px}
     h1{margin:0;font-size:20px}
     .sub{margin-top:6px;font-size:13px;color:#555}
+    h2{margin:14px 0 6px 0;font-size:16px}
+    h3{margin:12px 0 6px 0;font-size:14px}
     .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+    .left{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
     .btn{padding:10px 12px;border-radius:12px;border:1px solid #111;background:#111;color:#fff;cursor:pointer}
     .btn.secondary{background:#fff;color:#111;border-color:#d9dbe6}
+    .btn.ghost{background:#f5f6fb;color:#111;border-color:#e5e7f3}
     .pill{padding:6px 10px;border-radius:999px;font-size:12px;background:#f1f2f7;border:1px solid #e4e6f1}
     .hr{height:1px;background:var(--border);margin:14px 0}
 
-    /* ====== TABS ====== */
+    /* Tabs */
     .tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
     .tabbtn{border-radius:999px;border:1px solid #d9dbe6;background:#fff;padding:9px 12px;cursor:pointer}
     .tabbtn.active{background:#111;color:#fff}
-    .tab{display:none}.tab.active{display:block}
+    .tab{display:none}
+    .tab.active{display:block}
 
-    /* ====== BADGES ====== */
+    /* Layout */
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media(max-width:900px){.grid2{grid-template-columns:1fr}}
+    label{display:block;font-size:12px;color:var(--muted);margin:10px 0 6px}
+    input,select{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #d9dbe6;background:#fff;font:inherit}
+    input[readonly]{background:#f7f8fd}
+    .hint{font-size:12px;color:#666;margin-top:6px}
+    .need{font-size:12px;color:#555;background:#f7f8fd;border:1px solid #e7e9f6;padding:10px;border-radius:14px;margin-top:8px}
+
+    /* Badges */
     .badge{padding:6px 10px;border-radius:999px;font-size:12px;border:1px solid #e4e6f1;font-weight:700}
     .green{background:#f0fff3;color:var(--green)}
     .yellow{background:#fff7e6;color:var(--yellow)}
     .red{background:#fff0f0;color:var(--red)}
+    .muted{background:#f4f5fa;color:#666}
 
-    /* ====== TREND ====== */
+    /* Score cards */
+    .scoreGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media(max-width:900px){.scoreGrid{grid-template-columns:1fr}}
+    .box{border:1px solid var(--border);border-radius:16px;padding:12px}
+    .boxHead{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .boxTitle{font-weight:800}
+    .mini{font-size:12px;color:#666;margin-top:4px}
+    .kpiRow{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--border);padding-top:10px;margin-top:10px;font-size:13px}
+    .kpiName{font-weight:650}
+    .kpiVal{font-variant-numeric:tabular-nums}
+    .kpiRight{display:flex;gap:8px;align-items:center;justify-content:flex-end}
+
+    /* Chart */
     .chartWrap{border:1px solid var(--border);border-radius:16px;padding:12px;margin-top:12px}
-    canvas{width:100%;height:300px}
+    canvas{width:100%;height:320px;display:block}
     .warn{margin-top:10px;font-size:13px}
     .warn span{display:block;margin-top:4px}
 
-    /* ====== TABLE ====== */
+    /* Table */
     table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
-    th,td{padding:8px;border-bottom:1px solid var(--border)}
+    th,td{padding:8px;border-bottom:1px solid var(--border);vertical-align:top}
     th{text-transform:uppercase;font-size:12px;color:#444}
+    .small{font-size:12px;color:#666}
   </style>
 </head>
 
@@ -58,31 +87,197 @@
     <div class="row">
       <div>
         <h1>Due-Diligence KPI App</h1>
-        <div class="sub">Hybrid-Benchmark · Trend · Vergleich · PDF · Backup</div>
+        <div class="sub">Hybrid-Benchmark · KPIs + Ampel · Trend · Vergleich · PDF · Backup</div>
       </div>
-      <div class="row">
+      <div class="left">
         <span class="pill">v7.1</span>
+        <button class="btn ghost" id="btnDemo">Demo-Werte</button>
+        <button class="btn secondary" id="btnReset">Reset</button>
       </div>
     </div>
 
-    <!-- Tabs -->
     <div class="tabs">
-      <button class="tabbtn active" data-tab="trend">Trend</button>
+      <button class="tabbtn active" data-tab="inputs">Eingaben</button>
+      <button class="tabbtn" data-tab="results">Ergebnisse</button>
+      <button class="tabbtn" data-tab="periods">Zeiträume</button>
+      <button class="tabbtn" data-tab="trend">Trend</button>
       <button class="tabbtn" data-tab="compare">Vergleich</button>
       <button class="tabbtn" data-tab="backup">Backup</button>
     </div>
 
-    <!-- ================= TREND ================= -->
-    <div class="tab active" id="trend">
-      <h2>Trend (Hybrid)</h2>
+    <!-- ================= Eingaben ================= -->
+    <div class="tab active" id="inputs">
+      <h2>Rentabilität – Eingaben</h2>
+      <div class="grid2">
+        <div class="box">
+          <label>Umsatz (€)</label>
+          <input id="u" inputmode="decimal" placeholder="z. B. 1.250.000">
+          <div class="need"><b>Benötigt für:</b> Rentabilität → Rohertrag, EBITDA-Marge, Netto-Marge, ROI · Effizienz → Umsatz/MA, Umsatz/m² · Liquidität → Cashflow-Quote, WC-Benchmark · E-Commerce → Marketingquote, AOV, Retourenquote</div>
 
+          <label>Wareneinsatz (€)</label>
+          <input id="w" inputmode="decimal" placeholder="z. B. 720.000">
+          <div class="need"><b>Benötigt für:</b> Rentabilität → Rohertrag · Effizienz → Lagerumschlag</div>
+
+          <label>EBITDA (€)</label>
+          <input id="e" inputmode="decimal" placeholder="z. B. 140.000">
+          <div class="need"><b>Benötigt für:</b> Rentabilität → EBITDA-Marge</div>
+
+          <label>Jahresüberschuss (€)</label>
+          <input id="j" inputmode="decimal" placeholder="z. B. 70.000">
+          <div class="need"><b>Benötigt für:</b> Rentabilität → Netto-Marge, ROI</div>
+        </div>
+
+        <div class="box">
+          <label>Eigenkapital (€)</label>
+          <input id="ek" inputmode="decimal" placeholder="z. B. 280.000">
+          <div class="need"><b>Benötigt für:</b> Rentabilität → ROI · Liquidität → EK-Quote</div>
+
+          <label>Gesamtkapital (€)</label>
+          <input id="gk" inputmode="decimal" placeholder="z. B. 900.000">
+          <div class="need"><b>Benötigt für:</b> Liquidität → EK-Quote</div>
+
+          <label>Ø Lagerbestand (€)</label>
+          <input id="lb" inputmode="decimal" placeholder="z. B. 250.000">
+          <div class="need"><b>Benötigt für:</b> Effizienz → Lagerumschlag</div>
+
+          <label>Mitarbeiter (FTE)</label>
+          <input id="ma" inputmode="decimal" placeholder="z. B. 12">
+          <div class="need"><b>Benötigt für:</b> Effizienz → Umsatz/MA</div>
+
+          <label>Verkaufsfläche (m²)</label>
+          <input id="vf" inputmode="decimal" placeholder="z. B. 250">
+          <div class="need"><b>Benötigt für:</b> Effizienz → Umsatz/m²</div>
+        </div>
+      </div>
+
+      <h2>Liquidität – Eingaben</h2>
+      <div class="grid2">
+        <div class="box">
+          <label>Umlaufvermögen (€)</label>
+          <input id="uv" inputmode="decimal" placeholder="z. B. 320.000">
+          <div class="need"><b>Benötigt für:</b> Liquidität → WC-Benchmark</div>
+        </div>
+        <div class="box">
+          <label>Kurzfr. Verbindlichkeiten (€)</label>
+          <input id="kv" inputmode="decimal" placeholder="z. B. 210.000">
+          <div class="need"><b>Benötigt für:</b> Liquidität → WC-Benchmark</div>
+
+          <label>Operativer Cashflow (€)</label>
+          <input id="cf" inputmode="decimal" placeholder="z. B. 95.000">
+          <div class="need"><b>Benötigt für:</b> Liquidität → Cashflow-Quote</div>
+        </div>
+      </div>
+
+      <h2>E-Commerce / Sonstiges – Eingaben</h2>
+      <div class="grid2">
+        <div class="box">
+          <label>Marketingkosten (€)</label>
+          <input id="mk" inputmode="decimal" placeholder="z. B. 85.000">
+          <div class="need"><b>Benötigt für:</b> E-Commerce → Marketingquote</div>
+
+          <label>Shopbesucher (Anzahl)</label>
+          <input id="s" inputmode="decimal" placeholder="z. B. 520.000">
+          <div class="need"><b>Benötigt für:</b> E-Commerce → Conversion</div>
+        </div>
+        <div class="box">
+          <label>Bestellungen (Anzahl)</label>
+          <input id="b" inputmode="decimal" placeholder="z. B. 12.500">
+          <div class="need"><b>Benötigt für:</b> E-Commerce → Conversion, AOV</div>
+
+          <label>Retouren (€)</label>
+          <input id="r" inputmode="decimal" placeholder="z. B. 55.000">
+          <div class="need"><b>Benötigt für:</b> E-Commerce → Retourenquote</div>
+        </div>
+      </div>
+
+      <div class="hr"></div>
       <div class="row">
-        <select id="trendType">
-          <option value="Monat">Monat</option>
-          <option value="Quartal">Quartal</option>
-          <option value="Jahr">Jahr</option>
-        </select>
-        <button class="btn" id="drawTrend">Trend anzeigen</button>
+        <div class="left">
+          <button class="btn" id="btnCalc">Berechnen</button>
+          <button class="btn secondary" id="btnPDF">PDF-Report</button>
+        </div>
+        <div class="small" id="calcInfo">Hybrid-Benchmark aktiv (Logistik + Onlinehandel).</div>
+      </div>
+
+      <div id="validation" class="hint"></div>
+    </div>
+
+    <!-- ================= Ergebnisse ================= -->
+    <div class="tab" id="results">
+      <h2>Ergebnisse (Ampel + Scores)</h2>
+      <div id="resultOut"></div>
+    </div>
+
+    <!-- ================= Zeiträume ================= -->
+    <div class="tab" id="periods">
+      <h2>Zeiträume speichern (Auto-Label)</h2>
+
+      <div class="box">
+        <div class="grid2">
+          <div>
+            <label>Typ</label>
+            <select id="ptype">
+              <option value="Monat">Monat</option>
+              <option value="Quartal">Quartal</option>
+              <option value="Jahr">Jahr</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Jahr</label>
+            <select id="pyear"></select>
+          </div>
+
+          <div id="monthWrap">
+            <label>Monat</label>
+            <select id="pmonth"></select>
+          </div>
+
+          <div id="quarterWrap" style="display:none">
+            <label>Quartal</label>
+            <select id="pquarter">
+              <option value="Q1">Q1</option>
+              <option value="Q2">Q2</option>
+              <option value="Q3">Q3</option>
+              <option value="Q4">Q4</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row" style="margin-top:10px">
+          <div class="left" style="flex:1;min-width:260px">
+            <div style="min-width:320px;flex:1">
+              <label>Label (automatisch)</label>
+              <input id="plabel" readonly>
+            </div>
+            <button class="btn" id="btnSavePeriod">Zeitraum speichern</button>
+          </div>
+          <div class="left">
+            <button class="btn secondary" id="btnClearPeriods">Alle Zeiträume löschen</button>
+          </div>
+        </div>
+
+        <div class="hint">Ablauf: <b>Berechnen</b> → Zeitraum auswählen → <b>Zeitraum speichern</b>.</div>
+      </div>
+
+      <div id="periodList"></div>
+    </div>
+
+    <!-- ================= Trend ================= -->
+    <div class="tab" id="trend">
+      <h2>Trend (5 Linien)</h2>
+      <div class="row">
+        <div class="left">
+          <select id="trendType" style="max-width:220px">
+            <option value="Monat">Monat</option>
+            <option value="Quartal">Quartal</option>
+            <option value="Jahr">Jahr</option>
+          </select>
+          <button class="btn" id="btnDrawTrend">Trend anzeigen</button>
+        </div>
+        <div class="left">
+          <button class="btn secondary" id="btnTrendPDF">Trend-PDF</button>
+        </div>
       </div>
 
       <div class="chartWrap">
@@ -91,26 +286,30 @@
       </div>
     </div>
 
-    <!-- ================= VERGLEICH ================= -->
+    <!-- ================= Vergleich ================= -->
     <div class="tab" id="compare">
       <h2>Vergleich (Top-Treiber)</h2>
       <div class="row">
-        <select id="cmpA"></select>
-        <select id="cmpB"></select>
-        <button class="btn" id="runCompare">Vergleich</button>
+        <div class="left" style="flex:1;min-width:260px">
+          <select id="cmpA" style="min-width:240px"></select>
+          <select id="cmpB" style="min-width:240px"></select>
+          <button class="btn" id="btnCompare">Vergleich</button>
+        </div>
       </div>
       <div id="compareOut"></div>
     </div>
 
-    <!-- ================= BACKUP ================= -->
+    <!-- ================= Backup ================= -->
     <div class="tab" id="backup">
       <h2>Backup / Import</h2>
       <div class="row">
-        <button class="btn secondary" id="exportBackup">Backup exportieren</button>
-        <input type="file" id="importFile" style="display:none"/>
-        <button class="btn secondary" id="importBackup">Backup importieren</button>
+        <div class="left">
+          <button class="btn secondary" id="btnExportBackup">Backup exportieren</button>
+          <input type="file" id="importFile" style="display:none" accept=".json,application/json"/>
+          <button class="btn secondary" id="btnImportBackup">Backup importieren</button>
+        </div>
       </div>
-      <div class="sub">Damit kannst du die App auf ein neues Gerät mitnehmen.</div>
+      <div class="hint">Damit kannst du Daten auf ein neues Gerät mitnehmen.</div>
     </div>
 
   </div>
@@ -118,130 +317,688 @@
 
 <script>
 /* =========================================================
-   v7.1 – KERNLOGIK (kompakt, stabil)
+   Storage
    ========================================================= */
+const STORE = {
+  periods: "ddkpi_periods_v71",
+  lastInputs: "ddkpi_inputs_v71"
+};
+const $ = (id)=>document.getElementById(id);
 
-const STORE_KEY = "ddkpi_periods_v7";
-const $ = id => document.getElementById(id);
+function readJSON(key, fallback){
+  try{ return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }
+  catch{ return fallback; }
+}
+function writeJSON(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
 
-/* ---------- Demo-Datenstruktur (Beispiel) ----------
-   In deiner echten App kommen diese Daten
-   aus dem Reiter „Zeiträume speichern“.
----------------------------------------------------- */
-if(!localStorage.getItem(STORE_KEY)){
-  const demo = [
-    {type:"Monat",label:"2026-01",scores:{total:72,rent:70,eff:68,liq:75,ecom:74}},
-    {type:"Monat",label:"2026-02",scores:{total:69,rent:68,eff:65,liq:73,ecom:70}},
-    {type:"Monat",label:"2026-03",scores:{total:63,rent:64,eff:58,liq:70,ecom:60}},
-    {type:"Monat",label:"2026-04",scores:{total:61,rent:62,eff:55,liq:68,ecom:58}},
-  ];
-  localStorage.setItem(STORE_KEY, JSON.stringify(demo));
+function toNum(v){
+  if(v===null||v===undefined) return null;
+  const s = String(v).replace(/\./g,"").replace(",",".").trim();
+  if(!s) return null;
+  const n = Number(s);
+  return Number.isFinite(n) ? n : null;
+}
+function fmtPct(x){ return (x===null||x===undefined) ? "n/a" : (x.toFixed(1)+" %"); }
+function fmtNum(x, d=1){ return (x===null||x===undefined) ? "n/a" : x.toFixed(d); }
+function fmtEUR(x){
+  if(x===null||x===undefined) return "n/a";
+  return x.toLocaleString("de-DE", {maximumFractionDigits:0})+" €";
 }
 
-/* ---------- Trend ---------- */
-function getTrend(type){
-  return JSON.parse(localStorage.getItem(STORE_KEY)||"[]")
-    .filter(x=>x.type===type)
-    .sort((a,b)=>a.label.localeCompare(b.label));
+/* =========================================================
+   Benchmarks (Hybrid Standard)
+   ========================================================= */
+function scoreFromBench(value, bench, direction="higherBetter"){
+  if(value===null || value===undefined) return null;
+  const {red, yellow, green} = bench;
+  const clamp = (x)=>Math.max(0, Math.min(100, x));
+
+  if(direction==="higherBetter"){
+    if(value<=red) return 0;
+    if(value>=green) return 100;
+    if(value<=yellow){
+      const t=(value-red)/(yellow-red);
+      return clamp(t*60);
+    } else {
+      const t=(value-yellow)/(green-yellow);
+      return clamp(60 + t*40);
+    }
+  } else {
+    if(value>=red) return 0;
+    if(value<=green) return 100;
+    if(value>=yellow){
+      const t=(value-yellow)/(red-yellow);
+      return clamp(60 - t*60);
+    } else {
+      const t=(value-green)/(yellow-green);
+      return clamp(100 - t*40);
+    }
+  }
+}
+function badgeFromScore(score){
+  if(score===null) return {cls:"muted", txt:"n/a"};
+  if(score>=75) return {cls:"green", txt:"🟢"};
+  if(score>=60) return {cls:"yellow", txt:"🟡"};
+  return {cls:"red", txt:"🔴"};
+}
+function interpFromScore(score){
+  if(score===null) return "nicht berechenbar";
+  if(score>=80) return "sehr gut";
+  if(score>=70) return "gut";
+  if(score>=60) return "solide";
+  return "kritisch";
+}
+
+const BENCH = {
+  grossMargin: {red:18, yellow:25, green:35},
+  ebitdaMargin: {red:4, yellow:8, green:15},
+  netMargin: {red:1, yellow:3, green:8},
+  roi: {red:6, yellow:12, green:20},
+
+  invTurn: {red:1.5, yellow:2.5, green:5.0},
+  revPerFTE: {red:100000, yellow:150000, green:250000},
+  revPerM2: {red:2500, yellow:3500, green:6000},
+
+  equityRatio: {red:8, yellow:15, green:35},
+  wcPctSales: {red:-5, yellow:2, green:10},
+  cfPctSales: {red:0, yellow:3, green:10},
+
+  marketingPctSales: {green:6, yellow:10, red:18},
+  conversion: {red:0.8, yellow:1.5, green:3.0},
+  aov: {red:60, yellow:100, green:200},
+  returnsPctSales: {green:4, yellow:8, red:15}
+};
+
+/* =========================================================
+   KPI Calculation
+   ========================================================= */
+function readInputs(){
+  const ids = ["u","w","e","j","ek","gk","lb","ma","vf","uv","kv","cf","mk","s","b","r"];
+  const o = {};
+  ids.forEach(id=>o[id]=toNum($(id).value));
+  return o;
+}
+function saveInputsToLocal(){ writeJSON(STORE.lastInputs, readInputs()); }
+function loadInputsFromLocal(){
+  const v = readJSON(STORE.lastInputs, null);
+  if(!v) return;
+  Object.keys(v).forEach(k=>{
+    if($(k)) $(k).value = (v[k]===null||v[k]===undefined) ? "" : String(v[k]).replace(".",",");
+  });
+}
+
+function validateForKPIs(inp){
+  const missing = [];
+  const need = (key,label)=>{ if(inp[key]===null) missing.push(label); };
+  need("u","Umsatz");
+  return missing;
+}
+
+function calcKPIs(inp){
+  const u=inp.u, w=inp.w, e=inp.e, j=inp.j, ek=inp.ek, gk=inp.gk, lb=inp.lb, ma=inp.ma, vf=inp.vf;
+  const uv=inp.uv, kv=inp.kv, cf=inp.cf, mk=inp.mk, s=inp.s, b=inp.b, r=inp.r;
+
+  const grossMargin = (u!==null && w!==null && u!==0) ? ((u-w)/u*100) : null;
+  const ebitdaMargin = (u!==null && e!==null && u!==0) ? (e/u*100) : null;
+  const netMargin = (u!==null && j!==null && u!==0) ? (j/u*100) : null;
+  const roi = (ek!==null && j!==null && ek!==0) ? (j/ek*100) : null;
+
+  const invTurn = (w!==null && lb!==null && lb!==0) ? (w/lb) : null;
+  const revPerFTE = (u!==null && ma!==null && ma!==0) ? (u/ma) : null;
+  const revPerM2 = (u!==null && vf!==null && vf!==0) ? (u/vf) : null;
+
+  const equityRatio = (ek!==null && gk!==null && gk!==0) ? (ek/gk*100) : null;
+  const wc = (uv!==null && kv!==null) ? (uv-kv) : null;
+  const wcPctSales = (u!==null && wc!==null && u!==0) ? (wc/u*100) : null;
+  const cfPctSales = (u!==null && cf!==null && u!==0) ? (cf/u*100) : null;
+
+  const marketingPctSales = (u!==null && mk!==null && u!==0) ? (mk/u*100) : null;
+  const conversion = (s!==null && b!==null && s!==0) ? (b/s*100) : null;
+  const aov = (u!==null && b!==null && b!==0) ? (u/b) : null;
+  const returnsPctSales = (u!==null && r!==null && u!==0) ? (r/u*100) : null;
+
+  return {
+    rent: { grossMargin, ebitdaMargin, netMargin, roi },
+    eff: { invTurn, revPerFTE, revPerM2 },
+    liq: { equityRatio, wcPctSales, cfPctSales },
+    ecom:{ marketingPctSales, conversion, aov, returnsPctSales }
+  };
+}
+
+function scoreAll(k){
+  const sRent = {
+    grossMargin: scoreFromBench(k.rent.grossMargin, BENCH.grossMargin,"higherBetter"),
+    ebitdaMargin: scoreFromBench(k.rent.ebitdaMargin, BENCH.ebitdaMargin,"higherBetter"),
+    netMargin: scoreFromBench(k.rent.netMargin, BENCH.netMargin,"higherBetter"),
+    roi: scoreFromBench(k.rent.roi, BENCH.roi,"higherBetter"),
+  };
+  const sEff = {
+    invTurn: scoreFromBench(k.eff.invTurn, BENCH.invTurn,"higherBetter"),
+    revPerFTE: scoreFromBench(k.eff.revPerFTE, BENCH.revPerFTE,"higherBetter"),
+    revPerM2: scoreFromBench(k.eff.revPerM2, BENCH.revPerM2,"higherBetter"),
+  };
+  const sLiq = {
+    equityRatio: scoreFromBench(k.liq.equityRatio, BENCH.equityRatio,"higherBetter"),
+    wcPctSales: scoreFromBench(k.liq.wcPctSales, BENCH.wcPctSales,"higherBetter"),
+    cfPctSales: scoreFromBench(k.liq.cfPctSales, BENCH.cfPctSales,"higherBetter"),
+  };
+  const sEcom = {
+    marketingPctSales: scoreFromBench(k.ecom.marketingPctSales, BENCH.marketingPctSales,"lowerBetter"),
+    conversion: scoreFromBench(k.ecom.conversion, BENCH.conversion,"higherBetter"),
+    aov: scoreFromBench(k.ecom.aov, BENCH.aov,"higherBetter"),
+    returnsPctSales: scoreFromBench(k.ecom.returnsPctSales, BENCH.returnsPctSales,"lowerBetter"),
+  };
+
+  const avg = (arr)=>{
+    const v = arr.filter(x=>x!==null && x!==undefined);
+    if(!v.length) return null;
+    return v.reduce((a,b)=>a+b,0)/v.length;
+  };
+
+  const rentScore = avg(Object.values(sRent));
+  const effScore = avg(Object.values(sEff));
+  const liqScore = avg(Object.values(sLiq));
+  const ecomScore = avg(Object.values(sEcom));
+  const total = avg([rentScore, effScore, liqScore, ecomScore]); // 25% each
+
+  return {
+    kpiScores:{ rent:sRent, eff:sEff, liq:sLiq, ecom:sEcom },
+    areaScores:{ rent:rentScore, eff:effScore, liq:liqScore, ecom:ecomScore, total }
+  };
+}
+
+/* =========================================================
+   Rendering: Results
+   ========================================================= */
+function renderResults(inp, kpis, scoring){
+  const A = scoring.areaScores;
+  const K = kpis;
+  const S = scoring.kpiScores;
+
+  const areaCard = (title, colorVar, score, rows)=>{
+    const b = badgeFromScore(score);
+    return `
+      <div class="box">
+        <div class="boxHead">
+          <div>
+            <div class="boxTitle"><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${colorVar};margin-right:8px"></span>${title} <span class="small">(25%)</span></div>
+            <div class="mini">Score: <b>${score===null?"n/a":score.toFixed(1)}</b> · ${interpFromScore(score)} <span class="badge ${b.cls}" style="margin-left:8px">${b.txt}</span></div>
+          </div>
+        </div>
+        ${rows}
+      </div>
+    `;
+  };
+
+  const kpiLine = (name, valueTxt, score)=>{
+    const b=badgeFromScore(score);
+    return `
+      <div class="kpiRow">
+        <div><div class="kpiName">${name}</div></div>
+        <div class="kpiRight">
+          <div class="kpiVal">${valueTxt}</div>
+          <span class="badge ${b.cls}">${b.txt}</span>
+        </div>
+      </div>
+    `;
+  };
+
+  const totalBadge = badgeFromScore(A.total);
+
+  $("resultOut").innerHTML = `
+    <div class="box">
+      <div class="boxHead">
+        <div>
+          <div class="boxTitle">Gesamtscore (Hybrid)</div>
+          <div class="mini">
+            <b>${A.total===null?"n/a":A.total.toFixed(1)}</b> / 100 · ${interpFromScore(A.total)}
+            <span class="badge ${totalBadge.cls}" style="margin-left:8px">${totalBadge.txt}</span>
+          </div>
+        </div>
+        <div class="left">
+          <button class="btn secondary" onclick="switchTab('inputs')">Zurück zu Eingaben</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="scoreGrid" style="margin-top:12px">
+      ${areaCard("Rentabilität","var(--rent)",A.rent,
+        kpiLine("Rohertrag", fmtPct(K.rent.grossMargin), S.rent.grossMargin)+
+        kpiLine("EBITDA-Marge", fmtPct(K.rent.ebitdaMargin), S.rent.ebitdaMargin)+
+        kpiLine("Netto-Marge", fmtPct(K.rent.netMargin), S.rent.netMargin)+
+        kpiLine("ROI", fmtPct(K.rent.roi), S.rent.roi)
+      )}
+
+      ${areaCard("Effizienz","var(--eff)",A.eff,
+        kpiLine("Lagerumschlag", fmtNum(K.eff.invTurn,1), S.eff.invTurn)+
+        kpiLine("Umsatz / MA", fmtEUR(K.eff.revPerFTE), S.eff.revPerFTE)+
+        kpiLine("Umsatz / m²", fmtEUR(K.eff.revPerM2), S.eff.revPerM2)
+      )}
+
+      ${areaCard("Liquidität","var(--liq)",A.liq,
+        kpiLine("Eigenkapitalquote", fmtPct(K.liq.equityRatio), S.liq.equityRatio)+
+        kpiLine("Working Capital / Umsatz", fmtPct(K.liq.wcPctSales), S.liq.wcPctSales)+
+        kpiLine("Cashflow-Quote", fmtPct(K.liq.cfPctSales), S.liq.cfPctSales)
+      )}
+
+      ${areaCard("E-Commerce","var(--ecom)",A.ecom,
+        kpiLine("Marketingquote", fmtPct(K.ecom.marketingPctSales), S.ecom.marketingPctSales)+
+        kpiLine("Conversion", fmtPct(K.ecom.conversion), S.ecom.conversion)+
+        kpiLine("AOV", fmtEUR(K.ecom.aov), S.ecom.aov)+
+        kpiLine("Retourenquote", fmtPct(K.ecom.returnsPctSales), S.ecom.returnsPctSales)
+      )}
+    </div>
+  `;
+}
+
+/* =========================================================
+   Periods: Save/List/Trend/Compare
+   ========================================================= */
+function getPeriods(){ return readJSON(STORE.periods, []); }
+function setPeriods(p){ writeJSON(STORE.periods, p); }
+
+function renderPeriodList(){
+  const p = getPeriods().slice().sort((a,b)=> (a.type+a.label).localeCompare(b.type+b.label));
+  if(!p.length){
+    $("periodList").innerHTML = `<div class="hint">Noch keine Zeiträume gespeichert.</div>`;
+    renderCompareSelects();
+    return;
+  }
+  const rows = p.map(x=>`
+    <tr>
+      <td><b>${x.type}</b></td>
+      <td>${x.label}</td>
+      <td>${x.savedAt}</td>
+      <td>
+        <span class="badge ${badgeFromScore(x.scores.total).cls}">${badgeFromScore(x.scores.total).txt}</span>
+        <span class="small">${x.scores.total.toFixed(1)}</span>
+      </td>
+      <td><button class="btn secondary" onclick="deletePeriod('${x.id}')">Löschen</button></td>
+    </tr>
+  `).join("");
+
+  $("periodList").innerHTML = `
+    <table>
+      <thead><tr><th>Typ</th><th>Label</th><th>Gespeichert</th><th>Gesamt</th><th></th></tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  `;
+  renderCompareSelects();
+}
+
+function deletePeriod(id){
+  const p = getPeriods().filter(x=>x.id!==id);
+  setPeriods(p);
+  renderPeriodList();
+  drawTrend();
+}
+
+function savePeriod(){
+  if(!CURRENT) { alert("Bitte zuerst berechnen."); return; }
+  const type = $("ptype").value;
+  const label = $("plabel").value.trim();
+  if(!label){ alert("Label ist leer – bitte Zeitraum auswählen."); return; }
+
+  const p = getPeriods();
+  const now = new Date();
+  const item = {
+    id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())+Math.random()),
+    type, label,
+    savedAt: now.toLocaleString("de-DE"),
+    scores: {
+      total: CURRENT.scoring.areaScores.total ?? 0,
+      rent: CURRENT.scoring.areaScores.rent ?? 0,
+      eff: CURRENT.scoring.areaScores.eff ?? 0,
+      liq: CURRENT.scoring.areaScores.liq ?? 0,
+      ecom: CURRENT.scoring.areaScores.ecom ?? 0
+    },
+    kpis: CURRENT.kpis,
+    kpiScores: CURRENT.scoring.kpiScores
+  };
+
+  const idx = p.findIndex(x=>x.type===type && x.label===label);
+  if(idx>=0) p[idx]=item; else p.push(item);
+
+  setPeriods(p);
+  renderPeriodList();
+  drawTrend();
+  alert("Zeitraum gespeichert.");
+}
+
+/* =========================================================
+   Trend Chart
+   ========================================================= */
+function getCSS(varName){ return getComputedStyle(document.documentElement).getPropertyValue(varName); }
+
+function getTrendData(type){
+  return getPeriods().filter(x=>x.type===type).sort((a,b)=>a.label.localeCompare(b.label));
 }
 
 function drawTrend(){
   const type = $("trendType").value;
-  const data = getTrend(type);
+  const data = getTrendData(type);
+
   const c = $("trendCanvas");
   const ctx = c.getContext("2d");
 
-  c.width = c.clientWidth;
-  c.height = 300;
+  const rect = c.getBoundingClientRect();
+  c.width = Math.max(320, Math.floor(rect.width));
+  c.height = 320;
+
   ctx.clearRect(0,0,c.width,c.height);
 
   if(!data.length){
-    ctx.fillText("Keine Daten",20,40);
+    ctx.fillStyle="#666"; ctx.font="14px system-ui";
+    ctx.fillText("Keine Daten: Bitte Zeiträume speichern.", 20, 40);
+    $("warnings").innerHTML="";
     return;
   }
 
   const lines = [
-    {k:"total",color:"#111"},
-    {k:"rent",color:getComputedStyle(document.documentElement).getPropertyValue("--rent")},
-    {k:"eff",color:getComputedStyle(document.documentElement).getPropertyValue("--eff")},
-    {k:"liq",color:getComputedStyle(document.documentElement).getPropertyValue("--liq")},
-    {k:"ecom",color:getComputedStyle(document.documentElement).getPropertyValue("--ecom")},
+    {k:"total", color:"#111", name:"Gesamt"},
+    {k:"rent", color:getCSS("--rent"), name:"Rentabilität"},
+    {k:"eff",  color:getCSS("--eff"),  name:"Effizienz"},
+    {k:"liq",  color:getCSS("--liq"),  name:"Liquidität"},
+    {k:"ecom", color:getCSS("--ecom"), name:"E-Commerce"},
   ];
 
-  const pad = 40;
-  const W = c.width-pad*2;
-  const H = c.height-pad*2;
+  const padL=44, padR=14, padT=14, padB=44;
+  const W = c.width - padL - padR;
+  const H = c.height - padT - padB;
 
-  function x(i){return pad + W*(i/(data.length-1||1))}
-  function y(v){return pad + H*(1-v/100)}
+  const x = (i)=> padL + (data.length===1? W/2 : W*(i/(data.length-1)));
+  const y = (v)=> padT + H*(1 - (v/100));
 
-  // Grid
-  ctx.strokeStyle="#e9ecf5";
+  ctx.strokeStyle="#e9ecf5"; ctx.lineWidth=1;
+  ctx.fillStyle="#666"; ctx.font="12px system-ui";
   for(let i=0;i<=5;i++){
-    const yy = pad + H*(i/5);
-    ctx.beginPath();ctx.moveTo(pad,yy);ctx.lineTo(pad+W,yy);ctx.stroke();
+    const yy = padT + H*(i/5);
+    ctx.beginPath(); ctx.moveTo(padL,yy); ctx.lineTo(padL+W,yy); ctx.stroke();
+    const val = Math.round(100 - i*20);
+    ctx.fillText(String(val), 10, yy+4);
   }
 
-  // Lines
+  ctx.lineWidth=2;
   lines.forEach(l=>{
-    ctx.strokeStyle=l.color;
+    ctx.strokeStyle=l.color.trim();
     ctx.beginPath();
     data.forEach((d,i)=>{
-      const px=x(i), py=y(d.scores[l.k]);
-      if(i===0)ctx.moveTo(px,py); else ctx.lineTo(px,py);
+      const v = d.scores[l.k];
+      const px=x(i), py=y(v);
+      if(i===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
     });
     ctx.stroke();
   });
 
-  // Labels
   ctx.fillStyle="#666"; ctx.font="12px system-ui";
-  data.forEach((d,i)=>ctx.fillText(d.label,x(i)-15,pad+H+20));
+  data.forEach((d,i)=>{
+    const px=x(i);
+    ctx.save();
+    ctx.translate(px, padT+H+18);
+    ctx.rotate(-0.2);
+    ctx.fillText(d.label, -18, 0);
+    ctx.restore();
+  });
+
+  let lx=padL, ly=padT+10;
+  lines.forEach(l=>{
+    ctx.fillStyle=l.color.trim(); ctx.fillRect(lx,ly,10,10);
+    ctx.fillStyle="#111"; ctx.fillText(l.name, lx+14, ly+10);
+    lx += 120;
+    if(lx>c.width-140){ lx=padL; ly+=16; }
+  });
 
   renderWarnings(data);
 }
 
-/* ---------- Warnungen ---------- */
 function renderWarnings(data){
   const w = $("warnings");
   w.innerHTML="";
-  if(data.length<3) return;
+  if(data.length<2) return;
 
-  const last3 = data.slice(-3).map(x=>x.scores.total);
-  if(last3[2]<last3[1] && last3[1]<last3[0]){
-    w.innerHTML += "<span>⚠️ 3 Zeiträume in Folge schlechter (Gesamt)</span>";
+  const totals = data.map(x=>x.scores.total);
+  const n = totals.length;
+
+  if(n>=3){
+    const a=totals[n-3], b=totals[n-2], c=totals[n-1];
+    if(c<b && b<a){
+      w.innerHTML += `<span>⚠️ 3 Zeiträume in Folge schlechter (Gesamt)</span>`;
+    }
   }
-  const drop = data[data.length-2].scores.total - data[data.length-1].scores.total;
+
+  const drop = totals[n-2] - totals[n-1];
   if(drop>10){
-    w.innerHTML += "<span>⚠️ Starker Einbruch (>10 Punkte)</span>";
+    w.innerHTML += `<span>⚠️ Starker Einbruch (>10 Punkte) in der letzten Periode</span>`;
+  }
+
+  const last = data[n-1].scores;
+  const prev = data[n-2].scores;
+  const diffs = ["rent","eff","liq","ecom"].map(k=>({k, d:last[k]-prev[k]})).sort((a,b)=>a.d-b.d);
+  const worst = diffs[0];
+  if(worst.d < -3){
+    const name = ({rent:"Rentabilität",eff:"Effizienz",liq:"Liquidität",ecom:"E-Commerce"})[worst.k];
+    w.innerHTML += `<span>ℹ️ Haupttreiber der Verschlechterung: <b>${name}</b> (${worst.d.toFixed(1)})</span>`;
   }
 }
 
-/* ---------- Vergleich ---------- */
+/* =========================================================
+   Compare
+   ========================================================= */
 function renderCompareSelects(){
-  const all = JSON.parse(localStorage.getItem(STORE_KEY)||"[]");
-  $("cmpA").innerHTML = all.map((x,i)=>`<option value="${i}">${x.type} ${x.label}</option>`).join("");
-  $("cmpB").innerHTML = $("cmpA").innerHTML;
-  if(all.length>1){$("cmpA").value=all.length-2; $("cmpB").value=all.length-1;}
+  const all = getPeriods().slice().sort((a,b)=>(a.type+a.label).localeCompare(b.type+b.label));
+  const toOpt = (x)=>`<option value="${x.id}">${x.type} ${x.label} · Gesamt ${x.scores.total.toFixed(1)}</option>`;
+  $("cmpA").innerHTML = all.map(toOpt).join("");
+  $("cmpB").innerHTML = all.map(toOpt).join("");
+
+  if(all.length>=2){
+    $("cmpA").value = all[all.length-2].id;
+    $("cmpB").value = all[all.length-1].id;
+  }
 }
+
 function runCompare(){
-  const all = JSON.parse(localStorage.getItem(STORE_KEY)||"[]");
-  const A = all[$("cmpA").value];
-  const B = all[$("cmpB").value];
-  if(!A||!B) return;
-  const deltas = Object.keys(A.scores).map(k=>({k, d:B.scores[k]-A.scores[k]}))
-    .sort((a,b)=>b.d-a.d);
+  const all = getPeriods();
+  const A = all.find(x=>x.id===$("cmpA").value);
+  const B = all.find(x=>x.id===$("cmpB").value);
+  if(!A||!B){ $("compareOut").innerHTML = `<div class="hint">Bitte zwei Zeiträume auswählen.</div>`; return; }
+
+  const flat = (p)=>{
+    const out=[];
+    const add=(area,key,label)=>{
+      const sc  = p.kpiScores?.[area]?.[key];
+      out.push({id:`${area}.${key}`, area, key, label, score:sc});
+    };
+
+    add("rent","grossMargin","Rohertrag (%)");
+    add("rent","ebitdaMargin","EBITDA-Marge (%)");
+    add("rent","netMargin","Netto-Marge (%)");
+    add("rent","roi","ROI (%)");
+
+    add("eff","invTurn","Lagerumschlag (x)");
+    add("eff","revPerFTE","Umsatz/MA (€)");
+    add("eff","revPerM2","Umsatz/m² (€)");
+
+    add("liq","equityRatio","Eigenkapitalquote (%)");
+    add("liq","wcPctSales","WC/Umsatz (%)");
+    add("liq","cfPctSales","Cashflow-Quote (%)");
+
+    add("ecom","marketingPctSales","Marketingquote (%)");
+    add("ecom","conversion","Conversion (%)");
+    add("ecom","aov","AOV (€)");
+    add("ecom","returnsPctSales","Retourenquote (%)");
+    return out;
+  };
+
+  const fa = flat(A), fb = flat(B);
+  const mapB = new Map(fb.map(x=>[x.id,x]));
+  const deltas = fa.map(x=>{
+    const y = mapB.get(x.id);
+    const da = x.score, db = y?.score;
+    const d = (da===null||db===null) ? null : (db-da);
+    return { ...x, scoreA:da, scoreB:db, delta:d };
+  }).filter(x=>x.delta!==null)
+    .sort((a,b)=>b.delta-a.delta);
+
+  const up = deltas.slice(0,3);
+  const down = deltas.slice(-3).sort((a,b)=>a.delta-b.delta);
+
+  const areaNames = {rent:"Rentabilität",eff:"Effizienz",liq:"Liquidität",ecom:"E-Commerce"};
+  const row = (x)=>{
+    const arrow = x.delta>=0 ? "⬆️" : "⬇️";
+    const b = badgeFromScore(x.scoreB);
+    return `<li>${arrow} <b>${x.label}</b> (${areaNames[x.area]}) · Δ ${x.delta.toFixed(1)} · <span class="badge ${b.cls}">${b.txt}</span></li>`;
+  };
+
   $("compareOut").innerHTML = `
-    <h3>Top-Treiber</h3>
-    <b>Verbesserungen</b>
-    <ul>${deltas.slice(0,3).map(x=>`<li>${x.k}: +${x.d.toFixed(1)}</li>`).join("")}</ul>
-    <b>Verschlechterungen</b>
-    <ul>${deltas.slice(-3).map(x=>`<li>${x.k}: ${x.d.toFixed(1)}</li>`).join("")}</ul>
+    <div class="box">
+      <div class="boxHead">
+        <div>
+          <div class="boxTitle">Vergleich</div>
+          <div class="mini"><b>${A.type} ${A.label}</b> → <b>${B.type} ${B.label}</b></div>
+        </div>
+      </div>
+      <div class="kpiRow">
+        <div><b>Gesamt</b></div>
+        <div class="kpiRight">
+          <span class="small">${A.scores.total.toFixed(1)} → ${B.scores.total.toFixed(1)}</span>
+          <span class="badge ${badgeFromScore(B.scores.total).cls}">${badgeFromScore(B.scores.total).txt}</span>
+        </div>
+      </div>
+
+      <h3>Top 3 Verbesserungen</h3>
+      <ul>${up.map(row).join("")}</ul>
+
+      <h3>Top 3 Verschlechterungen</h3>
+      <ul>${down.map(row).join("")}</ul>
+
+      <div class="hint">Top-Treiber basieren auf KPI-Score-Änderungen (Benchmark-basiert).</div>
+    </div>
   `;
 }
 
-/* ---------- Backup ---------- */
+/* =========================================================
+   PDF Export (kompakt)
+   ========================================================= */
+function exportPDF(){
+  if(!CURRENT){ alert("Bitte zuerst berechnen."); return; }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:"pt", format:"a4"});
+  const W = doc.internal.pageSize.getWidth();
+  const H = doc.internal.pageSize.getHeight();
+  const now = new Date().toLocaleString("de-DE");
+
+  const addTitle = (t, y)=>{
+    doc.setFont("helvetica","bold"); doc.setFontSize(18);
+    doc.text(t, 40, y);
+  };
+  const addSmall = (t, y)=>{
+    doc.setFont("helvetica","normal"); doc.setFontSize(11);
+    doc.text(t, 40, y);
+  };
+
+  addTitle("Due-Diligence KPI Report", 70);
+  addSmall("Hybrid-Benchmark (Marke + interne Logistik)", 92);
+  addSmall(`Erstellt: ${now}`, 112);
+
+  const total = CURRENT.scoring.areaScores.total;
+  doc.setFont("helvetica","bold"); doc.setFontSize(16);
+  doc.text(`Gesamtscore: ${total===null?"n/a":total.toFixed(1)} / 100`, 40, 155);
+  doc.setFont("helvetica","normal"); doc.setFontSize(12);
+  doc.text(`Interpretation: ${interpFromScore(total)}`, 40, 178);
+
+  // Trend page with embedded chart
+  doc.addPage();
+  addTitle("Trend", 70);
+  addSmall(`Ansicht: ${$("trendType").value}`, 92);
+  drawTrend();
+  try{
+    const canvas = $("trendCanvas");
+    const img = canvas.toDataURL("image/png", 1.0);
+    const imgW = W-80;
+    const imgH = imgW * (canvas.height/canvas.width);
+    doc.addImage(img, "PNG", 40, 120, imgW, Math.min(imgH, 420));
+  }catch(e){
+    addSmall("Trendgrafik konnte nicht eingebettet werden.", 140);
+  }
+
+  // Area pages
+  const areaPage = (title, rows)=>{
+    doc.addPage();
+    addTitle(title, 70);
+    doc.setFont("helvetica","normal"); doc.setFontSize(11);
+    doc.text("KPIs + Ampel", 40, 92);
+
+    let y=130;
+    rows.forEach(r=>{
+      doc.setFont("helvetica","bold"); doc.setFontSize(12);
+      doc.text(r.name, 40, y);
+      doc.setFont("helvetica","normal");
+      doc.text(String(r.value), 260, y);
+      doc.text(String(r.ampel), 500, y);
+      y+=22;
+      if(y>H-60){ doc.addPage(); y=80; }
+    });
+  };
+
+  const K = CURRENT.kpis;
+  const S = CURRENT.scoring.kpiScores;
+
+  areaPage("Rentabilität (25%)", [
+    {name:"Rohertrag", value:fmtPct(K.rent.grossMargin), ampel:badgeFromScore(S.rent.grossMargin).txt},
+    {name:"EBITDA-Marge", value:fmtPct(K.rent.ebitdaMargin), ampel:badgeFromScore(S.rent.ebitdaMargin).txt},
+    {name:"Netto-Marge", value:fmtPct(K.rent.netMargin), ampel:badgeFromScore(S.rent.netMargin).txt},
+    {name:"ROI", value:fmtPct(K.rent.roi), ampel:badgeFromScore(S.rent.roi).txt},
+  ]);
+  areaPage("Effizienz (25%)", [
+    {name:"Lagerumschlag", value:fmtNum(K.eff.invTurn,1), ampel:badgeFromScore(S.eff.invTurn).txt},
+    {name:"Umsatz / MA", value:fmtEUR(K.eff.revPerFTE), ampel:badgeFromScore(S.eff.revPerFTE).txt},
+    {name:"Umsatz / m²", value:fmtEUR(K.eff.revPerM2), ampel:badgeFromScore(S.eff.revPerM2).txt},
+  ]);
+  areaPage("Liquidität (25%)", [
+    {name:"Eigenkapitalquote", value:fmtPct(K.liq.equityRatio), ampel:badgeFromScore(S.liq.equityRatio).txt},
+    {name:"Working Capital / Umsatz", value:fmtPct(K.liq.wcPctSales), ampel:badgeFromScore(S.liq.wcPctSales).txt},
+    {name:"Cashflow-Quote", value:fmtPct(K.liq.cfPctSales), ampel:badgeFromScore(S.liq.cfPctSales).txt},
+  ]);
+  areaPage("E-Commerce (25%)", [
+    {name:"Marketingquote", value:fmtPct(K.ecom.marketingPctSales), ampel:badgeFromScore(S.ecom.marketingPctSales).txt},
+    {name:"Conversion", value:fmtPct(K.ecom.conversion), ampel:badgeFromScore(S.ecom.conversion).txt},
+    {name:"AOV", value:fmtEUR(K.ecom.aov), ampel:badgeFromScore(S.ecom.aov).txt},
+    {name:"Retourenquote", value:fmtPct(K.ecom.returnsPctSales), ampel:badgeFromScore(S.ecom.returnsPctSales).txt},
+  ]);
+
+  doc.save("Due-Diligence-KPI-Report.pdf");
+}
+
+function exportTrendPDF(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:"pt", format:"a4"});
+  const W = doc.internal.pageSize.getWidth();
+
+  drawTrend();
+  const canvas = $("trendCanvas");
+  const img = canvas.toDataURL("image/png", 1.0);
+
+  doc.setFont("helvetica","bold"); doc.setFontSize(16);
+  doc.text("Trend (Hybrid)", 40, 60);
+  doc.setFont("helvetica","normal"); doc.setFontSize(11);
+  doc.text(`Ansicht: ${$("trendType").value}`, 40, 80);
+
+  const imgW = W-80;
+  const imgH = imgW*(canvas.height/canvas.width);
+  doc.addImage(img,"PNG",40,110,imgW,Math.min(imgH,520));
+  doc.save("Trend.pdf");
+}
+
+/* =========================================================
+   Backup / Import
+   ========================================================= */
 function exportBackup(){
-  const blob = new Blob([localStorage.getItem(STORE_KEY)||"[]"],{type:"application/json"});
+  const payload = {
+    periods: getPeriods(),
+    inputs: readJSON(STORE.lastInputs, {})
+  };
+  const blob = new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
   const a=document.createElement("a");
   a.href=URL.createObjectURL(blob);
   a.download="ddkpi_backup.json";
@@ -249,23 +1006,169 @@ function exportBackup(){
 }
 function importBackup(file){
   const r=new FileReader();
-  r.onload=()=>{localStorage.setItem(STORE_KEY,r.result); alert("Import OK");};
+  r.onload=()=>{
+    try{
+      const payload = JSON.parse(r.result);
+      if(payload.periods) setPeriods(payload.periods);
+      if(payload.inputs) writeJSON(STORE.lastInputs, payload.inputs);
+      loadInputsFromLocal();
+      renderPeriodList();
+      renderCompareSelects();
+      drawTrend();
+      alert("Import OK");
+    }catch(e){
+      alert("Import fehlgeschlagen (Datei ungültig).");
+    }
+  };
   r.readAsText(file);
 }
 
-/* ---------- Events ---------- */
-document.querySelectorAll(".tabbtn").forEach(b=>b.onclick=()=>{
+/* =========================================================
+   Period UI (AUTO LABEL)
+   ========================================================= */
+function pad2(n){ return String(n).padStart(2,"0"); }
+
+function initPeriodSelectors(){
+  const now = new Date();
+  const thisYear = now.getFullYear();
+
+  // Years: thisYear-5 .. thisYear+2
+  const years = [];
+  for(let y=thisYear-5; y<=thisYear+2; y++) years.push(y);
+  $("pyear").innerHTML = years.map(y=>`<option value="${y}">${y}</option>`).join("");
+  $("pyear").value = String(thisYear);
+
+  // Months
+  const mNames = ["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
+  $("pmonth").innerHTML = mNames.map((n,i)=>`<option value="${i+1}">${n}</option>`).join("");
+  $("pmonth").value = String(now.getMonth()+1);
+
+  // Quarter from current month
+  const q = Math.floor(now.getMonth()/3)+1;
+  $("pquarter").value = "Q"+q;
+
+  updatePeriodUI();
+  updateAutoLabel();
+}
+
+function updatePeriodUI(){
+  const type = $("ptype").value;
+  $("monthWrap").style.display = (type==="Monat") ? "" : "none";
+  $("quarterWrap").style.display = (type==="Quartal") ? "" : "none";
+}
+
+function updateAutoLabel(){
+  const type = $("ptype").value;
+  const year = $("pyear").value;
+
+  let label = "";
+  if(type==="Jahr"){
+    label = `${year}`;
+  } else if(type==="Quartal"){
+    const q = $("pquarter").value; // Q1..Q4
+    label = `${year}-${q}`;
+  } else { // Monat
+    const m = pad2(Number($("pmonth").value));
+    label = `${year}-${m}`;
+  }
+  $("plabel").value = label;
+}
+
+/* =========================================================
+   App Actions
+   ========================================================= */
+let CURRENT = null;
+
+function calculate(){
+  const inp = readInputs();
+  saveInputsToLocal();
+
+  const miss = validateForKPIs(inp);
+  const more = [];
+  if(inp.u===null) more.push("⚠️ Umsatz fehlt → mehrere KPIs nicht berechenbar.");
+  if(inp.b===0) more.push("⚠️ Bestellungen = 0 → AOV nicht berechenbar.");
+  if(inp.s===0) more.push("⚠️ Shopbesucher = 0 → Conversion nicht berechenbar.");
+  $("validation").innerHTML = [...more].join("<br>");
+
+  const kpis = calcKPIs(inp);
+  const scoring = scoreAll(kpis);
+  CURRENT = { inp, kpis, scoring };
+
+  renderResults(inp, kpis, scoring);
+  switchTab("results");
+}
+
+function switchTab(id){
   document.querySelectorAll(".tabbtn").forEach(x=>x.classList.remove("active"));
   document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
-  b.classList.add("active");
-  $(b.dataset.tab).classList.add("active");
-});
-$("drawTrend").onclick=drawTrend;
-$("runCompare").onclick=runCompare;
-$("exportBackup").onclick=exportBackup;
-$("importBackup").onclick=()=>$("importFile").click();
-$("importFile").onchange=e=>importBackup(e.target.files[0]);
+  document.querySelector(`.tabbtn[data-tab="${id}"]`)?.classList.add("active");
+  $(id)?.classList.add("active");
 
+  if(id==="trend") drawTrend();
+  if(id==="periods") { updateAutoLabel(); renderPeriodList(); }
+  if(id==="compare") renderCompareSelects();
+}
+
+function setDemo(){
+  const demo = {
+    u:1250000, w:720000, e:140000, j:70000,
+    ek:280000, gk:900000, lb:250000, ma:12, vf:250,
+    uv:320000, kv:210000, cf:95000,
+    mk:85000, s:520000, b:12500, r:55000
+  };
+  Object.keys(demo).forEach(k=>{ if($(k)) $(k).value=String(demo[k]).replace(".",","); });
+  saveInputsToLocal();
+  calculate();
+}
+
+function resetAll(){
+  if(!confirm("Alles zurücksetzen? (Eingaben + Zeiträume)")) return;
+  localStorage.removeItem(STORE.lastInputs);
+  localStorage.removeItem(STORE.periods);
+  location.reload();
+}
+
+function clearPeriods(){
+  if(!confirm("Alle gespeicherten Zeiträume löschen?")) return;
+  setPeriods([]);
+  renderPeriodList();
+  drawTrend();
+  alert("Zeiträume gelöscht.");
+}
+
+/* =========================================================
+   Events + Init
+   ========================================================= */
+document.querySelectorAll(".tabbtn").forEach(b=>b.onclick=()=>switchTab(b.dataset.tab));
+
+$("btnCalc").onclick = calculate;
+$("btnPDF").onclick = exportPDF;
+$("btnTrendPDF").onclick = exportTrendPDF;
+
+$("btnSavePeriod").onclick = savePeriod;
+$("btnClearPeriods").onclick = clearPeriods;
+
+$("btnDrawTrend").onclick = drawTrend;
+
+$("btnCompare").onclick = runCompare;
+
+$("btnExportBackup").onclick = exportBackup;
+$("btnImportBackup").onclick = ()=>$("importFile").click();
+$("importFile").onchange = e=>{ if(e.target.files?.[0]) importBackup(e.target.files[0]); };
+
+$("btnDemo").onclick = setDemo;
+$("btnReset").onclick = resetAll;
+
+// Auto-label events
+$("ptype").onchange = ()=>{ updatePeriodUI(); updateAutoLabel(); };
+$("pyear").onchange = updateAutoLabel;
+$("pmonth").onchange = updateAutoLabel;
+$("pquarter").onchange = updateAutoLabel;
+
+// Init
+loadInputsFromLocal();
+initPeriodSelectors();
+renderPeriodList();
 renderCompareSelects();
 drawTrend();
 </script>
